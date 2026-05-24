@@ -196,6 +196,14 @@ abstract class AppLocalizations {
   String get aboutApp;
   String get other;
   String get version;
+  String get checkUpdate;
+  String get checkingUpdate;
+  String get latestVersion;
+  String get newVersionAvailable;
+  String get updateNow;
+  String get helpSupport;
+  String get helpSupportDesc;
+  String get contactUs;
 
   // ===== 等级 =====
   String get memberTier;
@@ -457,6 +465,14 @@ class AppLocalizationsZh extends AppLocalizations {
   @override String get aboutApp => '关于 Yangon Taxi';
   @override String get other => '其他';
   @override String get version => '版本 1.0.0';
+  @override String get checkUpdate => '检查更新';
+  @override String get checkingUpdate => '正在检查更新...';
+  @override String get latestVersion => '已是最新版本';
+  @override String get newVersionAvailable => '发现新版本';
+  @override String get updateNow => '立即更新';
+  @override String get helpSupport => '帮助与支持';
+  @override String get helpSupportDesc => '常见问题、联系客服';
+  @override String get contactUs => '联系我们';
 
   @override String get memberTier => '会员等级';
   @override String get points => '积分';
@@ -689,6 +705,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override String get aboutApp => 'About Yangon Taxi';
   @override String get other => 'Other';
   @override String get version => 'Version 1.0.0';
+  @override String get checkUpdate => 'Check for Updates';
+  @override String get checkingUpdate => 'Checking for updates...';
+  @override String get latestVersion => 'You are on the latest version';
+  @override String get newVersionAvailable => 'New version available';
+  @override String get updateNow => 'Update Now';
+  @override String get helpSupport => 'Help & Support';
+  @override String get helpSupportDesc => 'FAQ and customer support';
+  @override String get contactUs => 'Contact Us';
 
   @override String get memberTier => 'Member Tier';
   @override String get points => 'Points';
@@ -921,6 +945,14 @@ class AppLocalizationsMy extends AppLocalizations {
   @override String get aboutApp => 'Yangon Taxi အကြောင်း';
   @override String get other => 'အခြား';
   @override String get version => 'ဗားရှင်း 1.0.0';
+  @override String get checkUpdate => 'ဗားရှင်းစစ်ဆေး';
+  @override String get checkingUpdate => 'ဗားရှင်းစစ်ဆေးနေ...';
+  @override String get latestVersion => '� новшая версия'; // placeholder
+  @override String get newVersionAvailable => 'ဗားရှင်းသစ်ရ';
+  @override String get updateNow => 'အပ်ဒိတ်ယခုလုပ်';
+  @override String get helpSupport => 'အကူအညီနှင့်ထောက်ပံ့မှု';
+  @override String get helpSupportDesc => 'မေးခွန်းများနှင့်ဖောက်သည်ဝန်ဆောင်မှု';
+  @override String get contactUs => 'ကျွန်ုပ်တို့အားဆက်သွယ်';
 
   @override String get memberTier => 'အဆင့်ဝင်အဖွဲ့ဝင်မှု';
   @override String get points => 'တိုက်';

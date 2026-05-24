@@ -49,6 +49,9 @@ dependencies:
   # KBZ Pay QR
   qr_flutter: ^4.1.0
 
+  # 版本信息
+  package_info_plus: ^10.1.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
