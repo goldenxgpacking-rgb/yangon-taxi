@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -39,39 +40,141 @@ class WaitingDriverScreen extends StatefulWidget {
 
 class _WaitingDriverScreenState extends State<WaitingDriverScreen> {
   late Timer _timer;
-  int _remainingSeconds = 180; // 3分钟倒计时
+  int _remainingSeconds = 180;
   bool _driverFound = false;
-  LatLng _driverLocation = const LatLng(16.8680, 96.1960); // 模拟司机位置
+  
+  // 司机位置和路线
+  late LatLng _driverStartLocation;
+  late List<LatLng> _routePoints;
+  int _currentRouteIndex = 0;
+  
+  // 模拟司机信息
+  final String _driverName = 'U Mya Win';
+  final String _driverRating = '4.8';
+  final String _driverPlate = 'YUE 123';
+  final String _driverPhone = '09-123-456-789';
 
   @override
   void initState() {
     super.initState();
-    _startTimer();
+    _generateMockRoute();
+    _startSearching();
   }
 
-  // 开始倒计时
-  void _startTimer() {
+  // 生成模拟路线（曲线）
+  void _generateMockRoute() {
+    // 司机起始位置（模拟在附近 2-3km）
+    final random = Random();
+    final latOffset = (random.nextDouble() - 0.5) * 0.02; // ±~1km
+    final lngOffset = (random.nextDouble() - 0.5) * 0.02;
+    
+    _driverStartLocation = LatLng(
+      widget.pickupLocation.latitude + latOffset,
+      widget.pickupLocation.longitude + lngOffset,
+    );
+
+    // 生成中间点（模拟道路曲线）
+    _routePoints = _generateCurvedRoute(_driverStartLocation, widget.pickupLocation);
+  }
+
+  // 生成曲线路线（模拟真实道路）
+  List<LatLng> _generateCurvedRoute(LatLng start, LatLng end) {
+    final points = <LatLng>[];
+    const numPoints = 20; // 路线点数
+
+    for (int i = 0; i <= numPoints; i++) {
+      final t = i / numPoints;
+      
+      // 直线插值
+      final lat = start.latitude + (end.latitude - start.latitude) * t;
+      final lng = start.longitude + (end.longitude - start.longitude) * t;
+      
+      // 添加随机偏移（模拟道路弯曲）
+      final random = Random(42 + i); // 固定种子使路线一致
+      final offset = 0.003; // ~300m 偏移
+      final curvedLat = lat + (random.nextDouble() - 0.5) * offset;
+      final curvedLng = lng + (random.nextDouble() - 0.5) * offset;
+      
+      points.add(LatLng(curvedLat, curvedLng));
+    }
+    
+    return points;
+  }
+
+  // 开始搜索司机
+  void _startSearching() {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       setState(() {
         if (_remainingSeconds > 0) {
           _remainingSeconds--;
-        } else {
-          // 时间到，模拟找到司机
-          _driverFound = true;
-          _timer.cancel();
         }
       });
     });
 
-    // 模拟3秒后找到司机
+    // 模拟 3 秒后找到司机
     Future.delayed(const Duration(seconds: 3), () {
       if (mounted) {
         setState(() {
           _driverFound = true;
         });
         _timer.cancel();
+        _startDriverMovement();
       }
     });
+  }
+
+  // 开始司机移动模拟
+  void _startDriverMovement() {
+    _currentRouteIndex = 0;
+    
+    _timer = Timer.periodic(const Duration(milliseconds: 500), (timer) {
+      setState(() {
+        if (_currentRouteIndex < _routePoints.length - 1) {
+          _currentRouteIndex++;
+        } else {
+          _timer.cancel();
+        }
+      });
+    });
+  }
+
+  // 计算当前司机位置
+  LatLng get _currentDriverLocation {
+    if (!_driverFound || _routePoints.isEmpty) {
+      return _driverStartLocation;
+    }
+    return _routePoints[_currentRouteIndex];
+  }
+
+  // 计算司机到上车点的距离（km）
+  double get _distanceToPickup {
+    if (!_driverFound) return 0.0;
+    
+    final driver = _currentDriverLocation;
+    const earthRadius = 6371.0; // km
+    
+    final dLat = _degreesToRadians(widget.pickupLocation.latitude - driver.latitude);
+    final dLng = _degreesToRadians(widget.pickupLocation.longitude - driver.longitude);
+    
+    final a = sin(dLat / 2) * sin(dLat / 2) +
+        cos(_degreesToRadians(driver.latitude)) *
+            cos(_degreesToRadians(widget.pickupLocation.latitude)) *
+            sin(dLng / 2) *
+            sin(dLng / 2);
+    final c = 2 * atan2(sqrt(a), sqrt(1 - a));
+    
+    return earthRadius * c;
+  }
+
+  // 计算预计到达时间（分钟）
+  int get _etaMinutes {
+    final distance = _distanceToPickup;
+    const avgSpeed = 30.0; // km/h，仰光市区平均速度
+    return (distance / avgSpeed * 60).round();
+  }
+
+  double _degreesToRadians(double degrees) {
+    return degrees * pi / 180;
   }
 
   @override
@@ -90,7 +193,7 @@ class _WaitingDriverScreenState extends State<WaitingDriverScreen> {
           GoogleMap(
             initialCameraPosition: CameraPosition(
               target: widget.pickupLocation,
-              zoom: 15,
+              zoom: 14,
             ),
             myLocationEnabled: true,
             myLocationButtonEnabled: false,
@@ -105,15 +208,29 @@ class _WaitingDriverScreenState extends State<WaitingDriverScreen> {
                 ),
                 infoWindow: const InfoWindow(title: '上车地点'),
               ),
-              // 司机位置
+              // 司机位置（找到司机后显示）
               if (_driverFound)
                 Marker(
                   markerId: const MarkerId('driver'),
-                  position: _driverLocation,
+                  position: _currentDriverLocation,
                   icon: BitmapDescriptor.defaultMarkerWithHue(
                     BitmapDescriptor.hueGreen,
                   ),
-                  infoWindow: const InfoWindow(title: '司机位置'),
+                  infoWindow: InfoWindow(title: '司机: $_driverName'),
+                ),
+            },
+            polylines: {
+              // 路线（找到司机后显示）
+              if (_driverFound && _routePoints.isNotEmpty)
+                Polyline(
+                  polylineId: const PolylineId('driver_route'),
+                  points: _routePoints.sublist(0, _currentRouteIndex + 1),
+                  color: const Color(0xFFFFD700),
+                  width: 4,
+                  patterns: [
+                    PatternItem.dash(20),
+                    PatternItem.gap(10),
+                  ],
                 ),
             },
           ),
@@ -200,7 +317,7 @@ class _WaitingDriverScreenState extends State<WaitingDriverScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'U Mya Win',
+                                _driverName,
                                 style: GoogleFonts.poppins(
                                   color: Colors.white,
                                   fontSize: 14,
@@ -217,7 +334,7 @@ class _WaitingDriverScreenState extends State<WaitingDriverScreen> {
                                   ),
                                   const SizedBox(width: 4),
                                   Text(
-                                    '4.8',
+                                    _driverRating,
                                     style: GoogleFonts.poppins(
                                       color: Colors.white70,
                                       fontSize: 12,
@@ -225,7 +342,7 @@ class _WaitingDriverScreenState extends State<WaitingDriverScreen> {
                                   ),
                                   const SizedBox(width: 12),
                                   Text(
-                                    'YUE 123',
+                                    _driverPlate,
                                     style: GoogleFonts.poppins(
                                       color: Colors.white54,
                                       fontSize: 12,
@@ -238,16 +355,20 @@ class _WaitingDriverScreenState extends State<WaitingDriverScreen> {
                         ),
                         // 联系司机
                         IconButton(
-                          icon: const Icon(Icons.phone,
-                              color: Color(0xFFFFD700)),
+                          icon: const Icon(Icons.phone, color: Color(0xFFFFD700)),
                           onPressed: () {
                             // TODO: 拨打司机电话
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('拨打 $_driverPhone'),
+                              ),
+                            );
                           },
                         ),
                       ],
                     ),
                     const SizedBox(height: 12),
-                    // 司机到达时间
+                    // 司机到达时间（实时更新）
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
@@ -257,11 +378,12 @@ class _WaitingDriverScreenState extends State<WaitingDriverScreen> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(Icons.access_time,
-                              color: Colors.green, size: 16),
+                          const Icon(Icons.access_time, color: Colors.green, size: 16),
                           const SizedBox(width: 8),
                           Text(
-                            '司机正在赶来，约 3 分钟到达',
+                            _etaMinutes > 0
+                                ? '司机正在赶来，约 $_etaMinutes 分钟到达（距离 ${_distanceToPickup.toStringAsFixed(1)} km）'
+                                : '司机已到达！',
                             style: GoogleFonts.poppins(
                               color: Colors.green,
                               fontSize: 12,
@@ -277,7 +399,7 @@ class _WaitingDriverScreenState extends State<WaitingDriverScreen> {
             ),
           ),
 
-          // 底部取消按钮
+          // 底部取消按钮（未找到司机前）
           if (!_driverFound)
             Positioned(
               bottom: 30,
@@ -285,7 +407,6 @@ class _WaitingDriverScreenState extends State<WaitingDriverScreen> {
               right: 16,
               child: OutlinedButton(
                 onPressed: () {
-                  // 取消叫车
                   showDialog(
                     context: context,
                     builder: (context) => AlertDialog(
@@ -346,7 +467,7 @@ class _WaitingDriverScreenState extends State<WaitingDriverScreen> {
               ),
             ),
 
-          // 行程中底部栏（司机已接单后显示）
+          // 底部行程控制栏（司机已接单后显示）
           if (_driverFound)
             Positioned(
               bottom: 0,
@@ -409,26 +530,27 @@ class _WaitingDriverScreenState extends State<WaitingDriverScreen> {
                     const SizedBox(height: 12),
                     // 开始行程按钮
                     ElevatedButton(
-                      onPressed: () {
-                        // 跳转到行程进行中页面
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => RideInProgressScreen(
-                              pickupAddress: widget.pickupAddress,
-                              pickupLocation: widget.pickupLocation,
-                              destinationAddress: widget.destinationAddress,
-                              destinationLocation: widget.destinationLocation,
-                              vehicleType: widget.vehicleType,
-                              vehicleName: widget.vehicleName,
-                              price: widget.price,
-                              currency: widget.currency,
-                              distanceKm: widget.distanceKm,
-                              durationMin: widget.durationMin,
-                            ),
-                          ),
-                        );
-                      },
+                      onPressed: _etaMinutes <= 0
+                          ? () {
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => RideInProgressScreen(
+                                    pickupAddress: widget.pickupAddress,
+                                    pickupLocation: widget.pickupLocation,
+                                    destinationAddress: widget.destinationAddress,
+                                    destinationLocation: widget.destinationLocation,
+                                    vehicleType: widget.vehicleType,
+                                    vehicleName: widget.vehicleName,
+                                    price: widget.price,
+                                    currency: widget.currency,
+                                    distanceKm: widget.distanceKm,
+                                    durationMin: widget.durationMin,
+                                  ),
+                                ),
+                              );
+                            }
+                          : null, // 司机未到达前禁用
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFFFFD700),
                         foregroundColor: const Color(0xFF1A1A2E),
@@ -442,10 +564,13 @@ class _WaitingDriverScreenState extends State<WaitingDriverScreen> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(Icons.play_arrow, size: 20),
+                          Icon(
+                            _etaMinutes <= 0 ? Icons.play_arrow : Icons.hourglass_empty,
+                            size: 20,
+                          ),
                           const SizedBox(width: 8),
                           Text(
-                            '开始行程',
+                            _etaMinutes <= 0 ? '开始行程' : '等待司机到达...',
                             style: GoogleFonts.poppins(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
@@ -460,7 +585,6 @@ class _WaitingDriverScreenState extends State<WaitingDriverScreen> {
                     // SOS 按钮
                     ElevatedButton(
                       onPressed: () {
-                        // TODO: SOS 紧急按钮
                         showDialog(
                           context: context,
                           builder: (context) => AlertDialog(
