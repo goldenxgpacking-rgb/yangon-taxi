@@ -1,9 +1,14 @@
 import 'dart:async';
-
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:flutter_polyline_points/flutter_polyline_points.dart';
+import 'package:http/http.dart' as http;
 import 'payment_screen.dart';
+
+// Google Maps API Key
+const String _googleApiKey = 'AIzaSyByqGvjK-RffjPefoQQSAN6Tcnpxs6VrWs';
 
 class RideInProgressScreen extends StatefulWidget {
   final String pickupAddress;
@@ -36,56 +41,128 @@ class RideInProgressScreen extends StatefulWidget {
 }
 
 class _RideInProgressScreenState extends State<RideInProgressScreen> {
-  late Timer _timer;
-  int _remainingMinutes = 15; // 预计15分钟到达
+  GoogleMapController? _mapController;
+  Timer? _timer;
+  int _remainingMinutes = 15;
   bool _isTripStarted = false;
-  LatLng _driverCurrentLocation = const LatLng(16.8680, 96.1960); // 模拟司机当前位置
+
+  // 路线相关
+  List<LatLng> _polylinePoints = [];
+  Set<Polyline> _polylines = {};
+  bool _isLoadingRoute = false;
+
+  // 司机模拟位置（沿路线移动）
+  int _routeIndex = 0;
+  List<LatLng> _routePath = [];
 
   @override
   void initState() {
     super.initState();
+    _loadRoute(); // 先加载路线
     _startTripTimer();
   }
 
-  // 开始行程计时器
+  // 加载 Google Directions 路线
+  Future<void> _loadRoute() async {
+    setState(() => _isLoadingRoute = true);
+    try {
+      final url =
+          'https://maps.googleapis.com/maps/api/directions/json?origin=${widget.pickupLocation.latitude},${widget.pickupLocation.longitude}&destination=${widget.destinationLocation.latitude},${widget.destinationLocation.longitude}&key=$_googleApiKey';
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['routes'].isNotEmpty) {
+          final points = data['routes'][0]['overview_polyline']['points'];
+          final decoded = PolylinePoints().decodePolyline(points);
+          final coords = decoded
+              .map((p) => LatLng(p.latitude, p.longitude))
+              .toList();
+          setState(() {
+            _polylinePoints = coords;
+            _routePath = coords;
+            _polylines = {
+              Polyline(
+                polylineId: const PolylineId('route'),
+                points: coords,
+                color: const Color(0xFFFFD700),
+                width: 4,
+                startCap: Cap.roundCap,
+                endCap: Cap.roundCap,
+              ),
+            };
+            _isLoadingRoute = false;
+          });
+          // 缩放到路线范围
+          if (_mapController != null && coords.isNotEmpty) {
+            _fitMapToRoute(coords);
+          }
+        }
+      }
+    } catch (e) {
+      // API 失败时用直线替代
+      setState(() {
+        _polylinePoints = [widget.pickupLocation, widget.destinationLocation];
+        _routePath = _polylinePoints;
+        _polylines = {
+          Polyline(
+            polylineId: const PolylineId('route_fallback'),
+            points: _polylinePoints,
+            color: const Color(0xFFFFD700).withOpacity(0.5),
+            width: 3,
+          ),
+        };
+        _isLoadingRoute = false;
+      });
+    }
+  }
+
+  void _fitMapToRoute(List<LatLng> coords) {
+    if (_mapController == null || coords.isEmpty) return;
+    double minLat = coords.first.latitude, maxLat = coords.first.latitude;
+    double minLng = coords.first.longitude, maxLng = coords.first.longitude;
+    for (final c in coords) {
+      if (c.latitude < minLat) minLat = c.latitude;
+      if (c.latitude > maxLat) maxLat = c.latitude;
+      if (c.longitude < minLng) minLng = c.longitude;
+      if (c.longitude > maxLng) maxLng = c.longitude;
+    }
+    _mapController!.animateCamera(
+      CameraUpdate.newLatLngBounds(
+        LatLngBounds(
+          southwest: LatLng(minLat - 0.005, minLng - 0.005),
+          northeast: LatLng(maxLat + 0.005, maxLng + 0.005),
+        ),
+        50,
+      ),
+    );
+  }
+
+  // 司机沿路线移动的模拟位置
+  LatLng get _driverCurrentLocation {
+    if (_routePath.isEmpty) return widget.pickupLocation;
+    if (_routeIndex >= _routePath.length) return _routePath.last;
+    return _routePath[_routeIndex];
+  }
+
   void _startTripTimer() {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       setState(() {
         if (_remainingMinutes > 0) {
           _remainingMinutes--;
-          // 模拟司机移动（向目的地靠近）
-          _updateDriverLocation();
+          // 司机沿路线前进（每2秒移动一个路径点）
+          if (_routePath.isNotEmpty && _routeIndex < _routePath.length - 1) {
+            _routeIndex += 1;
+          }
         } else {
-          // 行程结束
-          _timer.cancel();
+          _timer?.cancel();
           _showTripCompletedDialog();
         }
       });
     });
   }
 
-  // 更新司机位置（模拟）
-  void _updateDriverLocation() {
-    // 模拟司机向目的地移动
-    setState(() {
-      _driverCurrentLocation = LatLng(
-        _driverCurrentLocation.latitude +
-            (widget.destinationLocation.latitude - _driverCurrentLocation.latitude) *
-                0.01,
-        _driverCurrentLocation.longitude +
-            (widget.destinationLocation.longitude -
-                    _driverCurrentLocation.longitude) *
-                0.01,
-      );
-    });
-  }
-
-  // 显示行程完成，跳转到支付页面
   void _showTripCompletedDialog() {
-    // 取消定时器
-    _timer.cancel();
-    
-    // 跳转到支付页面
+    _timer?.cancel();
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
@@ -105,7 +182,8 @@ class _RideInProgressScreenState extends State<RideInProgressScreen> {
 
   @override
   void dispose() {
-    _timer.cancel();
+    _timer?.cancel();
+    _mapController?.dispose();
     super.dispose();
   }
 
@@ -118,41 +196,51 @@ class _RideInProgressScreenState extends State<RideInProgressScreen> {
           // 地图
           GoogleMap(
             initialCameraPosition: CameraPosition(
-              target: _driverCurrentLocation,
-              zoom: 15,
+              target: widget.pickupLocation,
+              zoom: 14,
             ),
+            onMapCreated: (controller) {
+              _mapController = controller;
+              if (_polylinePoints.isNotEmpty) {
+                _fitMapToRoute(_polylinePoints);
+              }
+            },
             myLocationEnabled: true,
             myLocationButtonEnabled: false,
             zoomControlsEnabled: false,
             markers: {
-              // 司机当前位置
               Marker(
                 markerId: const MarkerId('driver'),
                 position: _driverCurrentLocation,
-                icon: BitmapDescriptor.defaultMarkerWithHue(
-                  BitmapDescriptor.hueGreen,
-                ),
+                icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
                 infoWindow: const InfoWindow(title: '司机位置'),
               ),
-              // 目的地
+              Marker(
+                markerId: const MarkerId('pickup'),
+                position: widget.pickupLocation,
+                icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
+                infoWindow: const InfoWindow(title: '上车点'),
+              ),
               Marker(
                 markerId: const MarkerId('destination'),
                 position: widget.destinationLocation,
-                icon: BitmapDescriptor.defaultMarkerWithHue(
-                  BitmapDescriptor.hueRed,
-                ),
+                icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
                 infoWindow: const InfoWindow(title: '目的地'),
               ),
             },
-            polylines: {
-              Polyline(
-                polylineId: const PolylineId('route'),
-                points: [_driverCurrentLocation, widget.destinationLocation],
-                color: const Color(0xFFFFD700),
-                width: 3,
-              ),
-            },
+            polylines: _polylines,
           ),
+
+          // 加载路线提示
+          if (_isLoadingRoute)
+            const Positioned(
+              top: 80,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: CircularProgressIndicator(color: Color(0xFFFFD700)),
+              ),
+            ),
 
           // 顶部行程信息栏
           Positioned(
@@ -184,65 +272,37 @@ class _RideInProgressScreenState extends State<RideInProgressScreen> {
                           color: Colors.green.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(25),
                         ),
-                        child: const Icon(
-                          Icons.person,
-                          color: Colors.green,
-                          size: 30,
-                        ),
+                        child: const Icon(Icons.person, color: Colors.green, size: 30),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              'U Mya Win',
-                              style: GoogleFonts.poppins(
-                                color: Colors.white,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
+                            Text('U Mya Win',
+                                style: GoogleFonts.poppins(
+                                    color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600)),
                             Row(
                               children: [
-                                Icon(
-                                  Icons.star,
-                                  color: const Color(0xFFFFD700),
-                                  size: 14,
-                                ),
+                                const Icon(Icons.star, color: Color(0xFFFFD700), size: 14),
                                 const SizedBox(width: 4),
-                                Text(
-                                  '4.8',
-                                  style: GoogleFonts.poppins(
-                                    color: Colors.white70,
-                                    fontSize: 12,
-                                  ),
-                                ),
+                                Text('4.8',
+                                    style: GoogleFonts.poppins(color: Colors.white70, fontSize: 12)),
                                 const SizedBox(width: 12),
-                                Text(
-                                  'YUE 123',
-                                  style: GoogleFonts.poppins(
-                                    color: Colors.white54,
-                                    fontSize: 12,
-                                  ),
-                                ),
+                                Text('YUE 123',
+                                    style: GoogleFonts.poppins(color: Colors.white54, fontSize: 12)),
                               ],
                             ),
                           ],
                         ),
                       ),
-                      // 联系司机
                       IconButton(
                         icon: const Icon(Icons.phone, color: Color(0xFFFFD700)),
-                        onPressed: () {
-                          // TODO: 拨打司机电话
-                        },
+                        onPressed: () {},
                       ),
                     ],
                   ),
-                  
                   const SizedBox(height: 12),
-                  
                   // 行程进度
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -250,41 +310,24 @@ class _RideInProgressScreenState extends State<RideInProgressScreen> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            '预计到达',
-                            style: GoogleFonts.poppins(
-                              color: Colors.white54,
-                              fontSize: 12,
-                            ),
-                          ),
-                          Text(
-                            '$_remainingMinutes 分钟',
-                            style: GoogleFonts.poppins(
-                              color: const Color(0xFFFFD700),
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
+                          Text('预计到达',
+                              style: GoogleFonts.poppins(color: Colors.white54, fontSize: 12)),
+                          Text('$_remainingMinutes 分钟',
+                              style: GoogleFonts.poppins(
+                                  color: const Color(0xFFFFD700),
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700)),
                         ],
                       ),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Text(
-                            '费用',
-                            style: GoogleFonts.poppins(
-                              color: Colors.white54,
-                              fontSize: 12,
-                            ),
-                          ),
-                          Text(
-                            '${widget.currency} ${widget.price}',
-                            style: GoogleFonts.poppins(
-                              color: const Color(0xFFFFD700),
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
+                          Text('费用', style: GoogleFonts.poppins(color: Colors.white54, fontSize: 12)),
+                          Text('${widget.currency} ${widget.price}',
+                              style: GoogleFonts.poppins(
+                                  color: const Color(0xFFFFD700),
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700)),
                         ],
                       ),
                     ],
@@ -320,47 +363,31 @@ class _RideInProgressScreenState extends State<RideInProgressScreen> {
                       const Icon(Icons.location_on, color: Colors.red, size: 16),
                       const SizedBox(width: 8),
                       Expanded(
-                        child: Text(
-                          widget.destinationAddress,
-                          style: GoogleFonts.poppins(
-                            color: Colors.white,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                        child: Text(widget.destinationAddress,
+                            style: GoogleFonts.poppins(
+                                color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis),
                       ),
                     ],
                   ),
-                  
                   const SizedBox(height: 16),
-                  
                   // 操作按钮
                   Row(
                     children: [
-                      // 分享行程（暂时禁用）
                       Expanded(
                         child: OutlinedButton.icon(
                           onPressed: () {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text(
-                                  '分享功能开发中...',
-                                  style: GoogleFonts.poppins(),
-                                ),
+                                content: Text('分享功能开发中...', style: GoogleFonts.poppins()),
                                 backgroundColor: const Color(0xFFFFD700),
                                 behavior: SnackBarBehavior.floating,
                               ),
                             );
                           },
                           icon: const Icon(Icons.share, size: 18),
-                          label: Text(
-                            '分享行程',
-                            style: GoogleFonts.poppins(
-                              fontSize: 12,
-                            ),
-                          ),
+                          label: Text('分享行程', style: GoogleFonts.poppins(fontSize: 12)),
                           style: OutlinedButton.styleFrom(
                             foregroundColor: const Color(0xFFFFD700),
                             side: const BorderSide(color: Color(0xFFFFD700)),
@@ -368,75 +395,44 @@ class _RideInProgressScreenState extends State<RideInProgressScreen> {
                           ),
                         ),
                       ),
-                      
                       const SizedBox(width: 12),
-                      
-                      // SOS 按钮
                       Expanded(
                         child: ElevatedButton.icon(
                           onPressed: () {
-                            // TODO: SOS 紧急按钮
                             showDialog(
                               context: context,
                               builder: (context) => AlertDialog(
                                 backgroundColor: const Color(0xFF1A1A2E),
-                                title: Text(
-                                  '🚨 紧急求助',
-                                  style: GoogleFonts.poppins(
-                                    color: Colors.red,
-                                  ),
-                                ),
-                                content: Text(
-                                  '将向紧急联系人发送您的位置信息，并通知平台客服。',
-                                  style: GoogleFonts.poppins(
-                                    color: Colors.white70,
-                                  ),
-                                ),
+                                title: Text('🚨 紧急求助',
+                                    style: GoogleFonts.poppins(color: Colors.red)),
+                                content: Text('将向紧急联系人发送您的位置信息，并通知平台客服。',
+                                    style: GoogleFonts.poppins(color: Colors.white70)),
                                 actions: [
                                   TextButton(
-                                    onPressed: () => Navigator.pop(context),
-                                    child: Text(
-                                      '取消',
-                                      style: GoogleFonts.poppins(
-                                        color: Colors.white54,
-                                      ),
-                                    ),
-                                  ),
+                                      onPressed: () => Navigator.pop(context),
+                                      child: Text('取消',
+                                          style: GoogleFonts.poppins(color: Colors.white54))),
                                   ElevatedButton(
                                     onPressed: () {
                                       Navigator.pop(context);
                                       ScaffoldMessenger.of(context).showSnackBar(
                                         SnackBar(
-                                          content: Text(
-                                            '已发送紧急求助信息！',
-                                            style: GoogleFonts.poppins(),
-                                          ),
-                                          backgroundColor: Colors.red,
-                                          behavior: SnackBarBehavior.floating,
-                                        ),
+                                            content: Text('已发送紧急求助信息！',
+                                                style: GoogleFonts.poppins()),
+                                            backgroundColor: Colors.red,
+                                            behavior: SnackBarBehavior.floating),
                                       );
                                     },
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.red,
-                                      foregroundColor: Colors.white,
-                                    ),
-                                    child: Text(
-                                      '确认发送',
-                                      style: GoogleFonts.poppins(),
-                                    ),
+                                        backgroundColor: Colors.red, foregroundColor: Colors.white),
+                                    child: Text('确认发送', style: GoogleFonts.poppins()),
                                   ),
                                 ],
                               ),
                             );
                           },
                           icon: const Icon(Icons.emergency, size: 18),
-                          label: Text(
-                            'SOS',
-                            style: GoogleFonts.poppins(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
+                          label: Text('SOS', style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600)),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.red,
                             foregroundColor: Colors.white,

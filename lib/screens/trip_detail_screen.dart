@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:share_plus/share_plus.dart';
 import '../models/trip.dart';
 import 'rating_screen.dart';
 
@@ -30,7 +30,7 @@ class TripDetailScreen extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.share, color: Color(0xFFFFD700)),
-            onPressed: _shareTrip,
+            onPressed: () => _shareTrip(context),
           ),
         ],
       ),
@@ -471,7 +471,7 @@ class TripDetailScreen extends StatelessWidget {
   }
 
   // 分享行程
-  void _shareTrip() {
+  Future<void> _shareTrip(BuildContext context) async {
     final vehicleTypeText = ['', 'CNG Car', 'Oil Car', 'EV Car', '私家车'][trip.vehicleType == 'cng' ? 1 : trip.vehicleType == 'oil' ? 2 : trip.vehicleType == 'ev' ? 3 : 4];
     final shareText = '''
 🚕 Yangon Taxi 行程分享
@@ -485,7 +485,11 @@ ${trip.distanceKm != null ? '📏 里程：${trip.distanceKm} km\n' : ''}
 
 — 使用 Yangon Taxi 安全出行 —
 ''';
-    Share.share(shareText, subject: '我的 Yangon Taxi 行程');
+    await Clipboard.setData(ClipboardData(text: shareText));
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('行程已复制到剪贴板', style: GoogleFonts.poppins()), backgroundColor: const Color(0xFF1A1A2E)),
+    );
   }
 
   // 获取状态颜色
@@ -516,3 +520,4 @@ ${trip.distanceKm != null ? '📏 里程：${trip.distanceKm} km\n' : ''}
     }
   }
 }
+

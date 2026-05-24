@@ -1,10 +1,8 @@
+﻿import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'trip_history_screen.dart';
-import 'saved_addresses_screen.dart';
-import 'login_screen.dart';
-import '../services/trip_storage.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -14,177 +12,223 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  String _userName = '游客用户';
-  String _userPhone = '+95 900000000';
-  String _userEmail = '';
-  bool _isLoading = true;
+  String _name = '';
+  String _phone = '';
+  String _email = '';
+  int _tierLevel = 0;
+  int _points = 0;
+  String _avatarPath = '';
 
   @override
   void initState() {
     super.initState();
-    _loadProfile();
+    _loadUserData();
   }
 
-  Future<void> _loadProfile() async {
+  Future<void> _loadUserData() async {
     final prefs = await SharedPreferences.getInstance();
-    final profile = await TripStorage.getUserProfile();
-    final name = prefs.getString('user_name') ?? profile['name'] ?? '';
-    final phone = prefs.getString('user_phone') ?? profile['phone'] ?? '';
-    final email = prefs.getString('user_email') ?? profile['email'] ?? '';
     setState(() {
-      _userName = name.isNotEmpty ? name : '游客用户';
-      _userPhone = phone.isNotEmpty ? phone : '+95 900000000';
-      _userEmail = email;
-      _isLoading = false;
+      _name = prefs.getString('user_name') ?? '未设置昵称';
+      _phone = prefs.getString('user_phone') ?? '';
+      _email = prefs.getString('user_email') ?? '';
+      _tierLevel = prefs.getInt('user_tier_level') ?? 0;
+      _points = prefs.getInt('user_points') ?? 0;
+      _avatarPath = prefs.getString('user_avatar') ?? '';
     });
   }
 
-  Future<void> _showEditProfile() async {
-    final nameController = TextEditingController(text: _userName == '游客用户' ? '' : _userName);
-    final emailController = TextEditingController(text: _userEmail);
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('user_avatar', image.path);
+      setState(() {
+        _avatarPath = image.path;
+      });
+    }
+  }
+
+  String _getTierName() {
+    switch (_tierLevel) {
+      case 0:
+        return '普通用户';
+      case 1:
+        return '银卡会员';
+      case 2:
+        return '金卡会员';
+      case 3:
+        return '铂金会员';
+      default:
+        return '普通用户';
+    }
+  }
+
+  Color _getTierColor() {
+    switch (_tierLevel) {
+      case 0:
+        return Colors.grey;
+      case 1:
+        return Colors.blueGrey;
+      case 2:
+        return const Color(0xFFFFD700);
+      case 3:
+        return Colors.purple;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  Future<void> _editProfile() async {
+    final nameController = TextEditingController(text: _name == '未设置昵称' ? '' : _name);
+    final emailController = TextEditingController(text: _email);
 
     await showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1A2E),
-        title: Text('编辑资料', style: GoogleFonts.poppins(color: const Color(0xFFFFD700), fontWeight: FontWeight.w600)),
+        backgroundColor: const Color(0xFF2A2A3E),
+        title: Text('编辑资料', style: GoogleFonts.poppins(color: const Color(0xFFFFD700))),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: nameController,
-              style: const TextStyle(color: Colors.white),
+              style: GoogleFonts.poppins(color: Colors.white),
               decoration: InputDecoration(
-                labelText: '姓名',
-                labelStyle: GoogleFonts.poppins(color: Colors.white54),
-                hintText: '输入你的姓名',
-                hintStyle: GoogleFonts.poppins(color: Colors.white38),
-                prefixIcon: const Icon(Icons.person, color: Color(0xFFFFD700), size: 20),
-                filled: true,
-                fillColor: Colors.white.withOpacity(0.05),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: const Color(0xFFFFD700).withOpacity(0.3))),
-                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFFFD700))),
+                labelText: '昵称',
+                labelStyle: GoogleFonts.poppins(color: Colors.white70),
+                enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: const Color(0xFFFFD700))),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             TextField(
               controller: emailController,
-              style: const TextStyle(color: Colors.white),
-              keyboardType: TextInputType.emailAddress,
+              style: GoogleFonts.poppins(color: Colors.white),
               decoration: InputDecoration(
-                labelText: '邮箱（可选）',
-                labelStyle: GoogleFonts.poppins(color: Colors.white54),
-                hintText: '输入你的邮箱',
-                hintStyle: GoogleFonts.poppins(color: Colors.white38),
-                prefixIcon: const Icon(Icons.email, color: Color(0xFFFFD700), size: 20),
-                filled: true,
-                fillColor: Colors.white.withOpacity(0.05),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: const Color(0xFFFFD700).withOpacity(0.3))),
-                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFFFD700))),
+                labelText: '邮箱（选填）',
+                labelStyle: GoogleFonts.poppins(color: Colors.white70),
+                enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: const Color(0xFFFFD700))),
               ),
             ),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: Text('取消', style: GoogleFonts.poppins(color: Colors.white54))),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('取消', style: GoogleFonts.poppins(color: Colors.white70)),
+          ),
           TextButton(
             onPressed: () async {
-              final name = nameController.text.trim();
-              final email = emailController.text.trim();
-              await TripStorage.saveUserProfile({'name': name, 'phone': _userPhone, 'email': email});
               final prefs = await SharedPreferences.getInstance();
-              if (name.isNotEmpty) await prefs.setString('user_name', name);
-              if (email.isNotEmpty) await prefs.setString('user_email', email);
+              await prefs.setString('user_name', nameController.text.trim());
+              await prefs.setString('user_email', emailController.text.trim());
+              if (!mounted) return;
               Navigator.pop(context);
-              _loadProfile();
+              _loadUserData();
             },
-            child: Text('保存', style: GoogleFonts.poppins(color: const Color(0xFFFFD700), fontWeight: FontWeight.w600)),
+            child: Text('保存', style: GoogleFonts.poppins(color: const Color(0xFFFFD700))),
           ),
         ],
       ),
     );
-    nameController.dispose();
-    emailController.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return Scaffold(backgroundColor: const Color(0xFF1A1A2E), body: const Center(child: CircularProgressIndicator(color: Color(0xFFFFD700))));
-    }
-
     return Scaffold(
       backgroundColor: const Color(0xFF1A1A2E),
       appBar: AppBar(
         backgroundColor: const Color(0xFF1A1A2E),
         elevation: 0,
         title: Text('个人中心', style: GoogleFonts.poppins(color: const Color(0xFFFFD700), fontWeight: FontWeight.w600)),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.edit, color: Color(0xFFFFD700)),
+            onPressed: _editProfile,
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            // 用户信息卡片
+            // 头像
+            GestureDetector(
+              onTap: _pickImage,
+              child: CircleAvatar(
+                radius: 50,
+                backgroundColor: const Color(0xFFFFD700),
+                backgroundImage: _avatarPath.isNotEmpty ? FileImage(File(_avatarPath)) : null,
+                child: _avatarPath.isEmpty
+                    ? const Icon(Icons.person, size: 50, color: Color(0xFF1A1A2E))
+                    : null,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(_name, style: GoogleFonts.poppins(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w600)),
+            const SizedBox(height: 4),
+            Text(_phone, style: GoogleFonts.poppins(color: Colors.white70, fontSize: 14)),
+            if (_email.isNotEmpty) ...[
+              const SizedBox(height: 4),
+              Text(_email, style: GoogleFonts.poppins(color: Colors.white70, fontSize: 14)),
+            ],
+            const SizedBox(height: 16),
+            // 用户等级卡片
             Container(
+              width: double.infinity,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                gradient: LinearGradient(colors: [const Color(0xFFFFD700).withOpacity(0.15), Colors.white.withOpacity(0.05)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+                color: const Color(0xFF2A2A3E),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFFFD700).withOpacity(0.3)),
+                border: Border.all(color: _getTierColor(), width: 1.5),
               ),
-              child: Row(
+              child: Column(
                 children: [
-                  Container(
-                    width: 60, height: 60,
-                    decoration: BoxDecoration(color: const Color(0xFFFFD700).withOpacity(0.1), borderRadius: BorderRadius.circular(30), border: Border.all(color: const Color(0xFFFFD700), width: 2)),
-                    child: Text(_userName.isNotEmpty && _userName != '游客用户' ? _userName[0].toUpperCase() : '?', style: GoogleFonts.poppins(color: const Color(0xFFFFD700), fontSize: 24, fontWeight: FontWeight.w700)),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('用户等级', style: GoogleFonts.poppins(color: Colors.white70, fontSize: 14)),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: _getTierColor().withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(_getTierName(), style: GoogleFonts.poppins(color: _getTierColor(), fontSize: 13, fontWeight: FontWeight.w600)),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(_userName, style: GoogleFonts.poppins(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600)),
-                        const SizedBox(height: 4),
-                        Text(_userPhone, style: GoogleFonts.poppins(color: Colors.white54, fontSize: 12)),
-                        if (_userEmail.isNotEmpty) ...[
-                          const SizedBox(height: 2),
-                          Text(_userEmail, style: GoogleFonts.poppins(color: Colors.white38, fontSize: 11)),
-                        ],
-                      ],
-                    ),
+                  const SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('积分', style: GoogleFonts.poppins(color: Colors.white70, fontSize: 14)),
+                      Text('$_points 分', style: GoogleFonts.poppins(color: const Color(0xFFFFD700), fontSize: 14, fontWeight: FontWeight.w600)),
+                    ],
                   ),
-                  IconButton(icon: const Icon(Icons.edit, color: Color(0xFFFFD700)), onPressed: _showEditProfile),
                 ],
               ),
             ),
-            const SizedBox(height: 24),
-            _buildMenuItem(context, icon: Icons.history, title: '行程历史', subtitle: '查看过去的行程记录', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const TripHistoryScreen()))),
-            _buildMenuItem(context, icon: Icons.location_on, title: '常用地址', subtitle: '设置家和公司地址', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const SavedAddressesScreen()))),
-            _buildMenuItem(context, icon: Icons.payment, title: '支付管理', subtitle: '管理支付方式和账单', onTap: () => _showComingSoon('支付管理')),
-            _buildMenuItem(context, icon: Icons.local_offer, title: '优惠券', subtitle: '查看可用优惠券', onTap: () => _showComingSoon('优惠券')),
-            _buildMenuItem(context, icon: Icons.notifications, title: '消息通知', subtitle: '行程通知、优惠信息', onTap: () => _showComingSoon('消息通知')),
-            _buildMenuItem(context, icon: Icons.shield, title: '安全中心', subtitle: '紧急联系人、行程分享', onTap: () => _showComingSoon('安全中心')),
-            _buildMenuItem(context, icon: Icons.settings, title: '设置', subtitle: '隐私设置、通知设置', onTap: () => _showComingSoon('设置')),
-            _buildMenuItem(context, icon: Icons.help, title: '帮助中心', subtitle: '常见问题、联系客服', onTap: () => _showComingSoon('帮助中心')),
-            _buildMenuItem(context, icon: Icons.info, title: '关于我们', subtitle: '版本 1.0.0 · Yangon Taxi', onTap: () {
-              showAboutDialog(
-                context: context,
-                applicationName: 'Yangon Taxi',
-                applicationVersion: '1.0.0',
-                applicationIcon: Container(width: 48, height: 48, decoration: BoxDecoration(color: const Color(0xFFFFD700).withOpacity(0.1), borderRadius: BorderRadius.circular(12)), child: const Icon(Icons.local_taxi, color: Color(0xFFFFD700), size: 32)),
-                children: [Text('Yangon Taxi — 仰光最便捷的打车应用', style: GoogleFonts.poppins(color: Colors.white54))],
-              );
-            }),
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
+            // 菜单项
+            _buildMenuItem(Icons.location_on, '常用地址', 'saved_addresses_screen.dart'),
+            _buildMenuItem(Icons.card_giftcard, '推荐有礼', 'referral_screen.dart'),
+            _buildMenuItem(Icons.star, '会员权益', 'tier_detail_screen.dart'),
+            _buildMenuItem(Icons.settings, '设置', 'settings_screen.dart'),
+            const SizedBox(height: 20),
+            // 退出登录
             SizedBox(
               width: double.infinity,
               child: OutlinedButton(
-                onPressed: () => Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => const LoginScreen()), (route) => false),
-                style: OutlinedButton.styleFrom(foregroundColor: Colors.red, side: const BorderSide(color: Colors.red), padding: const EdgeInsets.symmetric(vertical: 12), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                child: Text('退出登录', style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600)),
+                onPressed: () {
+                  // TODO: 退出登录逻辑
+                },
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: Colors.redAccent),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+                child: Text('退出登录', style: GoogleFonts.poppins(color: Colors.redAccent, fontSize: 16, fontWeight: FontWeight.w600)),
               ),
             ),
           ],
@@ -193,26 +237,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildMenuItem(BuildContext context, {required IconData icon, required String title, required String subtitle, required VoidCallback onTap}) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 8),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        decoration: BoxDecoration(color: Colors.white.withOpacity(0.03), borderRadius: BorderRadius.circular(12)),
-        child: Row(
-          children: [
-            Container(width: 36, height: 36, decoration: BoxDecoration(color: const Color(0xFFFFD700).withOpacity(0.1), borderRadius: BorderRadius.circular(18)), child: Icon(icon, color: const Color(0xFFFFD700), size: 18)),
-            const SizedBox(width: 12),
-            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(title, style: GoogleFonts.poppins(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500)), const SizedBox(height: 2), Text(subtitle, style: GoogleFonts.poppins(color: Colors.white38, fontSize: 10))])),
-            const Icon(Icons.chevron_right, color: Colors.white38, size: 16),
-          ],
-        ),
+  Widget _buildMenuItem(IconData icon, String title, String route) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFF2A2A3E),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: ListTile(
+        leading: Icon(icon, color: const Color(0xFFFFD700)),
+        title: Text(title, style: GoogleFonts.poppins(color: Colors.white, fontSize: 15)),
+        trailing: const Icon(Icons.chevron_right, color: Colors.white70),
+        onTap: () {
+          // TODO: 导航到对应页面
+        },
       ),
     );
-  }
-
-  void _showComingSoon(String feature) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$feature 即将上线，敬请期待！', style: GoogleFonts.poppins()), backgroundColor: const Color(0xFF1A1A2E), behavior: SnackBarBehavior.floating));
   }
 }
