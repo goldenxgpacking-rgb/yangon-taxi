@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 
 abstract class AppLocalizations {
   AppLocalizations(this.locale);
-
   final Locale locale;
 
   static AppLocalizations of(BuildContext context) =>
@@ -38,6 +37,7 @@ abstract class AppLocalizations {
   String get back;
   String get yes;
   String get no;
+  String get ok;
   String get retry;
   String get noData;
   String get orText;
@@ -63,14 +63,14 @@ abstract class AppLocalizations {
   String get homeAddr;
   String get workAddr;
 
-  // ===== 目的地搜索 =====
+  // ===== 目的地 =====
   String get searchDestination;
   String get recentPlaces;
   String get popularPlaces;
   String get noResults;
   String get pickLocation;
 
-  // ===== 车型选择 =====
+  // ===== 车型 =====
   String get chooseVehicle;
   String get vehicleCng;
   String get vehicleOil;
@@ -78,13 +78,14 @@ abstract class AppLocalizations {
   String get vehiclePrivate;
   String get estimatedPrice;
   String get estimatedTime;
+  String get vehicleTypeLabel;
+  String get feeLabel;
 
   // ===== 叫车确认 =====
   String get confirmRide;
   String get pickupLocation;
   String get dropoffLocation;
   String get paymentMethod;
-  String get cashPayment;
   String get nearbyDrivers;
   String get driverArrivingIn;
   String get driverMinAway;
@@ -114,13 +115,24 @@ abstract class AppLocalizations {
 
   // ===== 支付 =====
   String get payment;
+  String get selectPayment;
   String get tripFare;
   String get distance;
   String get duration;
-  String get payNow;
+  String get cashPayment;
+  String get cashDesc;
+  String get kbzPay;
+  String get kbzDesc;
+  String get balance;
+  String get insufficientBalance;
+  String confirmPay(String currency, int amount);
+  String get kbzProcessing;
+  String get amount;
+  String get txId;
+  String get paymentSuccess;
+  String get paymentFailed;
   String get payWithCash;
   String get payWithKbz;
-  String get paymentSuccess;
   String get paymentSuccessDesc;
 
   // ===== 评价 =====
@@ -205,7 +217,6 @@ abstract class AppLocalizations {
   String get copied;
 
   // ===== KBZ Pay =====
-  String get kbzPay;
   String get kbzPayTitle;
   String get kbzPayDesc;
   String get scanQr;
@@ -257,7 +268,6 @@ class _AppLocalizationsDelegate
 class AppLocalizationsZh extends AppLocalizations {
   AppLocalizationsZh() : super(const Locale('zh', 'CN'));
 
-  // 通用
   @override String get appTitle => 'Yangon Taxi';
   @override String get login => '登录';
   @override String get register => '注册';
@@ -277,11 +287,11 @@ class AppLocalizationsZh extends AppLocalizations {
   @override String get back => '返回';
   @override String get yes => '是';
   @override String get no => '否';
+  @override String get ok => '确定';
   @override String get retry => '重试';
   @override String get noData => '暂无数据';
   @override String get orText => '或';
 
-  // 验证
   @override String get phoneInvalid => '请输入有效的手机号';
   @override String get phoneRequired => '请输入手机号';
   @override String get otpSent => '验证码已发送';
@@ -292,7 +302,6 @@ class AppLocalizationsZh extends AppLocalizations {
   @override String get agreeTerms => '我已阅读并同意';
   @override String get termsLink => '《用车服务协议》';
 
-  // 首页
   @override String get home => '首页';
   @override String get enterDestination => '输入目的地';
   @override String get trips => '行程';
@@ -302,14 +311,12 @@ class AppLocalizationsZh extends AppLocalizations {
   @override String get homeAddr => '家';
   @override String get workAddr => '公司';
 
-  // 目的地
   @override String get searchDestination => '搜索目的地';
   @override String get recentPlaces => '最近去过';
   @override String get popularPlaces => '热门地点';
   @override String get noResults => '未找到结果';
   @override String get pickLocation => '选择位置';
 
-  // 车型
   @override String get chooseVehicle => '选择车型';
   @override String get vehicleCng => 'CNG 汽车';
   @override String get vehicleOil => '汽油车';
@@ -317,18 +324,17 @@ class AppLocalizationsZh extends AppLocalizations {
   @override String get vehiclePrivate => '私家车';
   @override String get estimatedPrice => '预估价格';
   @override String get estimatedTime => '预计时间';
+  @override String get vehicleTypeLabel => '车型';
+  @override String get feeLabel => '费用';
 
-  // 叫车确认
   @override String get confirmRide => '确认叫车';
   @override String get pickupLocation => '上车地点';
   @override String get dropoffLocation => '目的地';
   @override String get paymentMethod => '支付方式';
-  @override String get cashPayment => '现金支付';
   @override String get nearbyDrivers => '附近司机';
   @override String get driverArrivingIn => '到达';
   @override String get driverMinAway => ' min 到达';
 
-  // 等待司机
   @override String get searchingDriver => '正在为您寻找司机...';
   @override String get searchingDesc => '预计等待';
   @override String get driverAccepted => '司机已接单';
@@ -341,7 +347,6 @@ class AppLocalizationsZh extends AppLocalizations {
   @override String get cancelRideConfirm => '确定要取消此次叫车吗？';
   @override String get callDriver => '拨打司机电话';
 
-  // 行程中
   @override String get rideInProgress => '行程进行中';
   @override String get headingTo => '前往';
   @override String get remaining => '剩余';
@@ -351,18 +356,27 @@ class AppLocalizationsZh extends AppLocalizations {
   @override String get sosDesc => '将向紧急联系人发送您的位置信息，并通知平台客服。';
   @override String get sosConfirm => '确认发送';
 
-  // 支付
   @override String get payment => '支付';
+  @override String get selectPayment => '选择支付方式';
   @override String get tripFare => '行程费用';
   @override String get distance => '距离';
   @override String get duration => '时长';
-  @override String get payNow => '立即支付';
+  @override String get cashPayment => '现金支付';
+  @override String get cashDesc => '向司机支付现金';
+  @override String get kbzPay => 'KBZ Pay';
+  @override String get kbzDesc => '缅甸KBZ银行电子钱包';
+  @override String get balance => '余额';
+  @override String get insufficientBalance => '余额不足';
+  @override String confirmPay(String currency, int amount) => '确认支付 $currency $amount';
+  @override String get kbzProcessing => 'KBZ Pay 处理中...';
+  @override String get amount => '金额';
+  @override String get txId => '交易号';
+  @override String get paymentSuccess => '支付成功！';
+  @override String get paymentFailed => '支付失败';
   @override String get payWithCash => '现金支付';
   @override String get payWithKbz => 'KBZ Pay 支付';
-  @override String get paymentSuccess => '支付成功！';
   @override String get paymentSuccessDesc => '感谢您使用 Yangon Taxi';
 
-  // 评价
   @override String get rateRide => '评价行程';
   @override String get rateDesc => '您的评价帮助我们提升服务质量';
   @override String get skipRating => '跳过';
@@ -373,7 +387,6 @@ class AppLocalizationsZh extends AppLocalizations {
   @override String get good => '满意';
   @override String get excellent => '非常好';
 
-  // 行程历史
   @override String get tripHistory => '行程历史';
   @override String get allTrips => '全部';
   @override String get completed => '已完成';
@@ -383,7 +396,6 @@ class AppLocalizationsZh extends AppLocalizations {
   @override String get fare => '费用';
   @override String get noTrips => '暂无行程记录';
 
-  // 行程详情
   @override String get tripDetail => '行程详情';
   @override String get tripDate => '日期';
   @override String get tripRoute => '路线';
@@ -392,7 +404,6 @@ class AppLocalizationsZh extends AppLocalizations {
   @override String get shareTrip => '分享行程';
   @override String get tripCopied => '行程已复制到剪贴板';
 
-  // 个人中心
   @override String get profile => '个人中心';
   @override String get editProfile => '编辑资料';
   @override String get name => '姓名';
@@ -402,7 +413,6 @@ class AppLocalizationsZh extends AppLocalizations {
   @override String get saveChanges => '保存修改';
   @override String get profileUpdated => '资料已更新';
 
-  // 设置
   @override String get settings => '设置';
   @override String get notifSettings => '通知设置';
   @override String get pushNotif => '推送通知';
@@ -423,7 +433,6 @@ class AppLocalizationsZh extends AppLocalizations {
   @override String get aboutApp => '关于 Yangon Taxi';
   @override String get version => '版本 1.0.0';
 
-  // 等级
   @override String get memberTier => '会员等级';
   @override String get points => '积分';
   @override String get tripsCompleted => '已完成行程';
@@ -434,7 +443,6 @@ class AppLocalizationsZh extends AppLocalizations {
   @override String get tierBenefits => '会员权益';
   @override String get upgradeTo => '升级至';
 
-  // 推荐
   @override String get referralTitle => '推荐有礼';
   @override String get referralDesc => '邀请好友注册，双方各得 5000 KS';
   @override String get myReferralCode => '我的推荐码';
@@ -443,15 +451,12 @@ class AppLocalizationsZh extends AppLocalizations {
   @override String get shareNow => '立即分享';
   @override String get copied => '已复制';
 
-  // KBZ Pay
-  @override String get kbzPay => 'KBZ Pay';
   @override String get kbzPayTitle => 'KBZ Pay 支付';
   @override String get kbzPayDesc => '扫码或输入金额完成支付';
   @override String get scanQr => '扫描二维码';
   @override String get enterAmount => '输入金额';
   @override String get kbzPayLink => '关联 KBZ Pay 账户';
 
-  // 常用地址
   @override String get savedAddresses => '常用地址';
   @override String get addAddress => '添加地址';
   @override String get editAddress => '编辑地址';
@@ -459,7 +464,6 @@ class AppLocalizationsZh extends AppLocalizations {
   @override String setAsHome() => '设为家';
   @override String setAsWork() => '设为公司';
 
-  // SOS
   @override String get emergency => '紧急求助';
   @override String get emergencyCall => '拨打 999';
   @override String get emergencySent => '已发送紧急求助信息！';
@@ -491,6 +495,7 @@ class AppLocalizationsEn extends AppLocalizations {
   @override String get back => 'Back';
   @override String get yes => 'Yes';
   @override String get no => 'No';
+  @override String get ok => 'OK';
   @override String get retry => 'Retry';
   @override String get noData => 'No data';
   @override String get orText => 'or';
@@ -527,12 +532,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override String get vehiclePrivate => 'Private Car';
   @override String get estimatedPrice => 'Est. Price';
   @override String get estimatedTime => 'Est. Time';
+  @override String get vehicleTypeLabel => 'Vehicle';
+  @override String get feeLabel => 'Fee';
 
   @override String get confirmRide => 'Confirm Ride';
   @override String get pickupLocation => 'Pickup';
   @override String get dropoffLocation => 'Destination';
   @override String get paymentMethod => 'Payment';
-  @override String get cashPayment => 'Cash';
   @override String get nearbyDrivers => 'Nearby Drivers';
   @override String get driverArrivingIn => 'arriving in';
   @override String get driverMinAway => ' min';
@@ -559,13 +565,24 @@ class AppLocalizationsEn extends AppLocalizations {
   @override String get sosConfirm => 'Send Alert';
 
   @override String get payment => 'Payment';
+  @override String get selectPayment => 'Select Payment Method';
   @override String get tripFare => 'Trip Fare';
   @override String get distance => 'Distance';
   @override String get duration => 'Duration';
-  @override String get payNow => 'Pay Now';
+  @override String get cashPayment => 'Cash';
+  @override String get cashDesc => 'Pay with cash to driver';
+  @override String get kbzPay => 'KBZ Pay';
+  @override String get kbzDesc => 'Myanmar KBZ Bank e-wallet';
+  @override String get balance => 'Balance';
+  @override String get insufficientBalance => 'Insufficient balance';
+  @override String confirmPay(String currency, int amount) => 'Confirm Pay $currency $amount';
+  @override String get kbzProcessing => 'KBZ Pay processing...';
+  @override String get amount => 'Amount';
+  @override String get txId => 'Transaction ID';
+  @override String get paymentSuccess => 'Payment Successful!';
+  @override String get paymentFailed => 'Payment Failed';
   @override String get payWithCash => 'Pay with Cash';
   @override String get payWithKbz => 'Pay with KBZ Pay';
-  @override String get paymentSuccess => 'Payment Successful!';
   @override String get paymentSuccessDesc => 'Thank you for using Yangon Taxi';
 
   @override String get rateRide => 'Rate Your Ride';
@@ -584,7 +601,7 @@ class AppLocalizationsEn extends AppLocalizations {
   @override String get cancelled => 'Cancelled';
   @override String get today => 'Today';
   @override String get yesterday => 'Yesterday';
-  @override String get fare => 'Fare';
+  @override String get fare => 'fare';
   @override String get noTrips => 'No trips yet';
 
   @override String get tripDetail => 'Trip Detail';
@@ -642,7 +659,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override String get shareNow => 'Share Now';
   @override String get copied => 'Copied!';
 
-  @override String get kbzPay => 'KBZ Pay';
   @override String get kbzPayTitle => 'KBZ Pay';
   @override String get kbzPayDesc => 'Scan QR or enter amount to pay';
   @override String get scanQr => 'Scan QR Code';
@@ -680,18 +696,19 @@ class AppLocalizationsMy extends AppLocalizations {
   @override String get save => 'သိမ်းဆည်း';
   @override String get edit => 'ပြင်ဆင်';
   @override String get delete => 'ဖျက်ရန်';
-  @override String get loading => 'ဖွင့နေသည်...';
+  @override String get loading => 'ဖွင့်နေသည်...';
   @override String get success => 'အောင်မြင်သည်';
   @override String get error => 'အမှား';
   @override String get close => 'ပိတ်';
   @override String get back => 'နောက်သို့';
-  @override String get yes => 'ဟုတ်ပါသည်';
+  @override String get yes => 'ဟုတ်ကဲ့သည်';
   @override String get no => 'မဟုတ်ပါ';
+  @override String get ok => 'ဟုတ်ကဲ့';
   @override String get retry => 'ထပ်မံ';
   @override String get noData => 'ဒေတာမရှိပါ';
   @override String get orText => 'သို့မဟုတ်';
 
-  @override String get phoneInvalid => 'တော်မတိုင်ကောင်းသောဖုန်းနံပါတ်ဖြည့်ပါ';
+  @override String get phoneInvalid => 'တော်မှန်ကောင်းသောဖုန်းနံပါတ်ဖြည့်ပါ';
   @override String get phoneRequired => 'ဖုန်းနံပါတ်လေးလာပါ';
   @override String get otpSent => 'စကားဝှက်စတင်ပေးပါသည်';
   @override String get otpHint => '၆လုံးအကွက်သင်္ချာထည့်ပါ';
@@ -711,7 +728,7 @@ class AppLocalizationsMy extends AppLocalizations {
   @override String get workAddr => 'အလုပ်ခရီး';
 
   @override String get searchDestination => 'မှတ်တိုင်ရှာရန်';
-  @override String get recentPlaces => ' recente';
+  @override String get recentPlaces => 'recent';
   @override String get popularPlaces => 'လူကြိုဆိုများသောနေရာ';
   @override String get noResults => 'ရှာမတွေ့ပါ';
   @override String get pickLocation => 'နေရာရွေးချယ်ပါ';
@@ -723,14 +740,15 @@ class AppLocalizationsMy extends AppLocalizations {
   @override String get vehiclePrivate => 'ကိုယ်ပိုင်ကား';
   @override String get estimatedPrice => 'ခန့်မှန်းငွေ';
   @override String get estimatedTime => 'ခန့်မှန်းအချိန်';
+  @override String get vehicleTypeLabel => 'ကားအမျိုး';
+  @override String get feeLabel => 'ခ';
 
   @override String get confirmRide => 'ကားခေါ်အတည်ပြု';
   @override String get pickupLocation => 'ပေါ်တွင်ပါဝင်ရန်';
   @override String get dropoffLocation => 'ဆုံးရွှေရန်';
   @override String get paymentMethod => 'ငွေပေးချေးနည်း';
-  @override String get cashPayment => 'ငွေသားပေး';
   @override String get nearbyDrivers => 'အနီးဝန်းကျင်ဒရိုက်';
-  @override String get driverArrivingIn => 'ခံတိုင်း';
+  @override String get driverArrivingIn => 'ခံတွင်း';
   @override String get driverMinAway => 'မိနစ်';
 
   @override String get searchingDriver => 'ဒရိုက်ဘာကြည့်နေပါသည်...';
@@ -739,7 +757,7 @@ class AppLocalizationsMy extends AppLocalizations {
   @override String get driverOnWay => 'ဒရိုက်လမ်းတွင်ရောက်နေပါသည်';
   @override String get driverArrived => 'ဒရိုက်ရောက်ပြီးပါပြီ！';
   @override String get driverWaiting => 'စောင့်ဆိုင်းနေသည်';
-  @override String get startRide => 'ခရီးစစ်';
+  @override String get startRide => 'ခရီးစဉ်';
   @override String get waitingArrive => 'ဒရိုက်စောင့်ဆိုင်းနေ';
   @override String get cancelRide => 'ကားခေါ်မှုပယ်';
   @override String get cancelRideConfirm => 'ကားခေါ်မှုပယ်ပေးမလား？';
@@ -755,17 +773,28 @@ class AppLocalizationsMy extends AppLocalizations {
   @override String get sosConfirm => 'အကြောင်းကြားပေး';
 
   @override String get payment => 'ငွေပေးချေး';
-  @override String get tripFare => 'ခရီးစဉ်ခိန်းထားငွေ';
-  @override String get distance => 'အကွဲအဝေး';
+  @override String get selectPayment => 'ငွေပေးချေးနည်းရွေးချယ်ပါ';
+  @override String get tripFare => 'ခရီးစဉ်ခရန်းထားငွေ';
+  @override String get distance => 'အကွာအဝေး';
   @override String get duration => 'သက်တမ်း';
-  @override String get payNow => 'အခုငွေပေး';
-  @override String get payWithCash => 'ငွေသားပေး';
-  @override String get payWithKbz => 'KBZ Pay ဖြင့်ပေး';
+  @override String get cashPayment => 'ငွေသားပေး';
+  @override String get cashDesc => 'ဒရိုက်ဘာထံမှ ငွေသားပေးချေး';
+  @override String get kbzPay => 'KBZ Pay';
+  @override String get kbzDesc => 'မြန်မာ KBZ ဘဏ် e-wallet';
+  @override String get balance => 'လက်ကျန်';
+  @override String get insufficientBalance => 'လက်ကျန်မလုံလောက်ပါ';
+  @override String confirmPay(String currency, int amount) => 'အတည်ပြေး $currency $amount';
+  @override String get kbzProcessing => 'KBZ Pay ဆောင်ရွက်နေသည်...';
+  @override String get amount => 'ပမာဏ';
+  @override String get txId => 'အရောင်းအဝယ် ID';
   @override String get paymentSuccess => 'ငွေပေးချေးအောင်မြင်ပါသည်！';
+  @override String get paymentFailed => 'ငွေပေးချေးမအောင်မြင်ပါ';
+  @override String get payWithCash => 'ငွေသားဖြင့်ပေး';
+  @override String get payWithKbz => 'KBZ Pay ဖြင့်ပေး';
   @override String get paymentSuccessDesc => 'Yangon Taxi ကိုအသုံးပြုခြင်းအတွက်ကျေးဇူးတင်ပါသည်';
 
   @override String get rateRide => 'ခရီးစဉ်သုံးသပ်ချက်';
-  @override String get rateDesc => 'သင့်အမြင်ကိုပေးခြင်းဖြင့်ုံခုံးမြှင့်တင်ပါမည်';
+  @override String get rateDesc => 'သင့်အမြင်ကိုပေးခြင်းဖြင့်တိုးတက်မြှင့်တင်ပါမည်';
   @override String get skipRating => 'ကျေးဇူးပြန်';
   @override String get submitRating => 'တင်ပေးသည်';
   @override String get terrible => 'အလွန်အရမ်း';
@@ -780,7 +809,7 @@ class AppLocalizationsMy extends AppLocalizations {
   @override String get cancelled => 'ပယ်ဖျက်';
   @override String get today => 'ယနေ့';
   @override String get yesterday => 'မနက်';
-  @override String get fare => 'ခိန်းထားငွေ';
+  @override String get fare => 'ခရန်းထားငွေ';
   @override String get noTrips => 'ခရီးစဉ်မရှိသေးပါ';
 
   @override String get tripDetail => 'ခရီးစဉ်အသေးစိတ်';
@@ -803,11 +832,11 @@ class AppLocalizationsMy extends AppLocalizations {
   @override String get settings => 'ဆက်တင်စနစ်';
   @override String get notifSettings => 'အကြောင်းကြားချက်ဆက်တင်';
   @override String get pushNotif => 'အကြောင်းကြားချက်ဖြတ်ဆို';
-  @override String get pushNotifDesc => 'ခရီးစဉ်အခြေအနေနှင့်ဖြိုးဖြိုးဖော်ကျော်မှု';
-  @override String get soundNotif => 'အသက်သွေးသက်တမ်း';
-  @override String get soundNotifDesc => 'အသစ်စကားအသက်သွေးသက်တမ်း';
+  @override String get pushNotifDesc => 'ခရီးစဉ်အခြေအနေနှင့်ဖြိုးဖြိုးဖော်ကြောမှု';
+  @override String get soundNotif => 'အသက်သွင်းသက်တမ်း';
+  @override String get soundNotifDesc => 'အသစ်စကားအသက်သွင်းသက်တမ်း';
   @override String get vibrateNotif => 'ခပ်ကစားခြင်း';
-  @override String get vibrateNotifDesc => 'ခပ်ကစားအကြောင်းကြားချက်';
+  @override String get vibrateNotifDesc => 'အသစ်အကြောင်းကြားချက်ခပ်ကစားအကြောင်းကြားချက်';
   @override String get langSettings => 'ဘာသာစကား';
   @override String get appLanguage => 'အက်ပ်ဘာသာစကား';
   @override String get selectLanguage => 'ဘာသာစကားရွေးချယ်ပါ';
@@ -815,7 +844,7 @@ class AppLocalizationsMy extends AppLocalizations {
   @override String get privacyPolicy => 'ကိုယ်ရေးလုံခြုံမှုမူဝါဒ';
   @override String get termsOfService => 'ဝန်ဆောင်မှုစည်းမျဉ်း';
   @override String get clearCache => 'ကုန်ဆုံးသိမ်းဆည်းမှုဖျက်';
-  @override String get clearCacheDesc => 'ဒေါင်းမြှုပ်နှံးသိမ်းဆည်းမှုဖျက်';
+  @override String get clearCacheDesc => 'ဒေါင်းမြှုပ်နှံသိမ်းဆည်းမှုဖျက်';
   @override String get cacheCleared => 'ကုန်ဆုံးသိမ်းဆည်းမှုဖျက်ပြီး';
   @override String get aboutApp => 'Yangon Taxi အကြောင်း';
   @override String get version => 'ဗားရှင်း 1.0.0';
@@ -824,21 +853,20 @@ class AppLocalizationsMy extends AppLocalizations {
   @override String get points => 'တိုက်';
   @override String get tripsCompleted => 'ပြီးဆုံးခရီးစဉ်များ';
   @override String get regular => 'ပုဂ္ဂလထီး';
-  @override String get silver => 'ငါးသံတုံ';
-  @override String get gold => 'ငါးသံ';
+  @override String get silver => 'ငွေသံတုံး';
+  @override String get gold => 'ငွေသံ';
   @override String get platinum => 'ပလက်တီနူး';
   @override String get tierBenefits => 'အကျိုးကျက်များ';
   @override String get upgradeTo => 'တိုးတက်';
 
   @override String get referralTitle => 'ဖိတ်ခေါ်ဆုကြေး';
-  @override String get referralDesc => 'သူငယ်ခင်းဖိတ်ခေါက်ပြီး 5000 KS စုစုပေါင်းရရှိပါ';
+  @override String get referralDesc => 'သူငယ်ခင်းဖိတ်ခေါက်ပြီး 5000 KS စုစုပေါင်းရှိပါ';
   @override String get myReferralCode => 'ကိုယ်ပိုင်ဖိတ်ခေါ်ကုဒ်';
   @override String get referralReward => 'ဆုကြေး';
   @override String get inviteFriends => 'သူငယ်ခင်းဖိတ်ခေါက်';
   @override String get shareNow => 'အခုမျှဝေ';
   @override String get copied => 'ကူးယူပြီး';
 
-  @override String get kbzPay => 'KBZ Pay';
   @override String get kbzPayTitle => 'KBZ Pay ငွေပေးချေး';
   @override String get kbzPayDesc => 'QR ဖြတ်ပြီးငွေပေးပါ';
   @override String get scanQr => 'QR ကုဒ်ဖြတ်';

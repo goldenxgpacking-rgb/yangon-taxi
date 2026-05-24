@@ -1,8 +1,12 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import 'rating_screen.dart';
+import '../l10n/app_localizations.dart';
 import '../models/trip.dart';
 import '../services/trip_storage.dart';
+import '../services/kbz_pay_service.dart';
 
 class PaymentScreen extends StatefulWidget {
   final String pickupAddress;
@@ -37,40 +41,30 @@ class PaymentScreen extends StatefulWidget {
 }
 
 class _PaymentScreenState extends State<PaymentScreen> {
-  String _selectedPaymentMethod = 'cash'; // 默认现金支付
+  String _selectedPaymentMethod = 'cash';
+  bool _isProcessing = false;
+  double _kbzBalance = 50000.0;
 
-  // 支付方式列表
-  final List<Map<String, dynamic>> _paymentMethods = [
-    {
-      'id': 'cash',
-      'name': '现金支付',
-      'icon': Icons.money,
-      'color': Colors.green,
-      'description': '下车时支付现金',
-    },
-    {
-      'id': 'kbz_pay',
-      'name': 'KBZ Pay',
-      'icon': Icons.account_balance_wallet,
-      'color': Colors.blue,
-      'description': '缅甸KBZ银行电子钱包',
-    },
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _loadKBZBalance();
+  }
+
+  Future<void> _loadKBZBalance() async {
+    final balance = await KBZPayService.getBalance();
+    setState(() => _kbzBalance = balance);
+  }
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     return Scaffold(
       backgroundColor: const Color(0xFF1A1A2E),
       appBar: AppBar(
         backgroundColor: const Color(0xFF1A1A2E),
         elevation: 0,
-        title: Text(
-          '支付费用',
-          style: GoogleFonts.poppins(
-            color: const Color(0xFFFFD700),
-            fontWeight: FontWeight.w600,
-          ),
-        ),
+        title: Text(l.payment, style: GoogleFonts.poppins(color: const Color(0xFFFFD700), fontWeight: FontWeight.w600)),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color(0xFFFFD700)),
           onPressed: () => Navigator.pop(context),
@@ -79,383 +73,347 @@ class _PaymentScreenState extends State<PaymentScreen> {
       body: Column(
         children: [
           // 行程摘要
-          Container(
-            margin: const EdgeInsets.all(16),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.05),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: const Color(0xFFFFD700).withOpacity(0.3),
-                width: 1,
-              ),
-            ),
-            child: Column(
-              children: [
-                // 司机信息
-                Row(
-                  children: [
-                    Container(
-                      width: 50,
-                      height: 50,
-                      decoration: BoxDecoration(
-                        color: Colors.green.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(25),
-                      ),
-                      child: const Icon(
-                        Icons.person,
-                        color: Colors.green,
-                        size: 30,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            widget.driverName,
-                            style: GoogleFonts.poppins(
-                              color: Colors.white,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.star,
-                                color: const Color(0xFFFFD700),
-                                size: 14,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                widget.driverRating,
-                                style: GoogleFonts.poppins(
-                                  color: Colors.white70,
-                                  fontSize: 12,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Text(
-                                widget.vehiclePlate,
-                                style: GoogleFonts.poppins(
-                                  color: Colors.white54,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                
-                const SizedBox(height: 16),
-                const Divider(color: Colors.white12),
-                const SizedBox(height: 16),
-                
-                // 行程路线
-                Row(
-                  children: [
-                    const Icon(Icons.my_location, color: Color(0xFFFFD700), size: 16),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        widget.pickupAddress,
-                        style: GoogleFonts.poppins(
-                          color: Colors.white,
-                          fontSize: 12,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-                
-                const SizedBox(height: 8),
-                
-                Row(
-                  children: [
-                    const Icon(Icons.location_on, color: Colors.red, size: 16),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        widget.destinationAddress,
-                        style: GoogleFonts.poppins(
-                          color: Colors.white,
-                          fontSize: 12,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-                
-                const SizedBox(height: 16),
-                const Divider(color: Colors.white12),
-                const SizedBox(height: 16),
-                
-                // 车型和费用
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      '车型',
-                      style: GoogleFonts.poppins(
-                        color: Colors.white54,
-                        fontSize: 12,
-                      ),
-                    ),
-                    Text(
-                      widget.vehicleName,
-                      style: GoogleFonts.poppins(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-                
-                const SizedBox(height: 8),
-                
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      '费用',
-                      style: GoogleFonts.poppins(
-                        color: Colors.white54,
-                        fontSize: 12,
-                      ),
-                    ),
-                    Text(
-                      '${widget.currency} ${widget.price}',
-                      style: GoogleFonts.poppins(
-                        color: const Color(0xFFFFD700),
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          
+          _buildTripSummary(l),
           // 支付方式选择
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Align(
               alignment: Alignment.centerLeft,
-              child: Text(
-                '选择支付方式',
-                style: GoogleFonts.poppins(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+              child: Text(l.selectPayment, style: GoogleFonts.poppins(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600)),
             ),
           ),
-          
-          const SizedBox(height: 12),
-          
           // 支付方式列表
           Expanded(
-            child: ListView.builder(
+            child: ListView(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: _paymentMethods.length,
-              itemBuilder: (context, index) {
-                final method = _paymentMethods[index];
-                final isSelected = _selectedPaymentMethod == method['id'];
-                
-                return GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _selectedPaymentMethod = method['id'];
-                    });
-                  },
-                  child: Container(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? method['color'].withOpacity(0.1)
-                          : Colors.white.withOpacity(0.05),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: isSelected
-                            ? method['color']
-                            : Colors.white.withOpacity(0.1),
-                        width: isSelected ? 2 : 1,
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 50,
-                          height: 50,
-                          decoration: BoxDecoration(
-                            color: method['color'].withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(25),
-                          ),
-                          child: Icon(
-                            method['icon'],
-                            color: method['color'],
-                            size: 24,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                method['name'],
-                                style: GoogleFonts.poppins(
-                                  color: Colors.white,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                method['description'],
-                                style: GoogleFonts.poppins(
-                                  color: Colors.white54,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        if (isSelected)
-                          Icon(
-                            Icons.check_circle,
-                            color: method['color'],
-                            size: 24,
-                          ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-          
-          // 确认支付按钮
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: const Color(0xFF1A1A2E),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.3),
-                  blurRadius: 10,
-                  offset: const Offset(0, -5),
-                ),
+              children: [
+                _buildPaymentMethod(l, 'cash', l.cashPayment, Icons.money, Colors.green, l.cashDesc),
+                const SizedBox(height: 12),
+                _buildPaymentMethod(l, 'kbz_pay', 'KBZ Pay', Icons.account_balance_wallet, Colors.blue, l.kbzDesc),
+                if (_selectedPaymentMethod == 'kbz_pay') _buildKBZBalanceCard(l),
               ],
             ),
-            child: ElevatedButton(
-              onPressed: () {
-                // TODO: 处理支付逻辑
-                _processPayment();
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFFFD700),
-                foregroundColor: const Color(0xFF1A1A2E),
-                padding: const EdgeInsets.symmetric(vertical: 18),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                elevation: 5,
-                minimumSize: const Size(double.infinity, 50),
-              ),
-              child: Text(
-                '确认支付 ${widget.currency} ${widget.price}',
-                style: GoogleFonts.poppins(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
           ),
+          // 确认支付按钮
+          _buildPayButton(l),
         ],
       ),
     );
   }
 
-  // 处理支付
-  void _processPayment() {
-    // 显示支付处理中
-    showDialog(
+  Widget _buildTripSummary(AppLocalizations l) {
+    return Container(
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFFFD700).withOpacity(0.3), width: 1),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 50, height: 50,
+                decoration: BoxDecoration(color: Colors.green.withOpacity(0.1), borderRadius: BorderRadius.circular(25)),
+                child: const Icon(Icons.person, color: Colors.green, size: 30),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(widget.driverName, style: GoogleFonts.poppins(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600)),
+                    Row(
+                      children: [
+                        const Icon(Icons.star, color: Color(0xFFFFD700), size: 14),
+                        const SizedBox(width: 4),
+                        Text(widget.driverRating, style: GoogleFonts.poppins(color: Colors.white70, fontSize: 12)),
+                        const SizedBox(width: 12),
+                        Text(widget.vehiclePlate, style: GoogleFonts.poppins(color: Colors.white54, fontSize: 12)),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16), const Divider(color: Colors.white12), const SizedBox(height: 16),
+          Row(children: [
+            const Icon(Icons.my_location, color: Color(0xFFFFD700), size: 16),
+            const SizedBox(width: 12),
+            Expanded(child: Text(widget.pickupAddress, style: GoogleFonts.poppins(color: Colors.white, fontSize: 12), maxLines: 1, overflow: TextOverflow.ellipsis)),
+          ]),
+          const SizedBox(height: 8),
+          Row(children: [
+            const Icon(Icons.location_on, color: Colors.red, size: 16),
+            const SizedBox(width: 12),
+            Expanded(child: Text(widget.destinationAddress, style: GoogleFonts.poppins(color: Colors.white, fontSize: 12), maxLines: 1, overflow: TextOverflow.ellipsis)),
+          ]),
+          const SizedBox(height: 16), const Divider(color: Colors.white12), const SizedBox(height: 16),
+          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+            Text(l.vehicleTypeLabel, style: GoogleFonts.poppins(color: Colors.white54, fontSize: 12)),
+            Text(widget.vehicleName, style: GoogleFonts.poppins(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500)),
+          ]),
+          const SizedBox(height: 8),
+          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+            Text(l.feeLabel, style: GoogleFonts.poppins(color: Colors.white54, fontSize: 12)),
+            Text('${widget.currency} ${widget.price}', style: GoogleFonts.poppins(color: const Color(0xFFFFD700), fontSize: 18, fontWeight: FontWeight.w700)),
+          ]),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPaymentMethod(AppLocalizations l, String id, String name, IconData icon, Color color, String desc) {
+    final isSelected = _selectedPaymentMethod == id;
+    return GestureDetector(
+      onTap: () => setState(() => _selectedPaymentMethod = id),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isSelected ? color.withOpacity(0.1) : Colors.white.withOpacity(0.05),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: isSelected ? color : Colors.white.withOpacity(0.1), width: isSelected ? 2 : 1),
+        ),
+        child: Row(children: [
+          Container(
+            width: 50, height: 50,
+            decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(25)),
+            child: Icon(icon, color: color, size: 24),
+          ),
+          const SizedBox(width: 12),
+          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(name, style: GoogleFonts.poppins(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600)),
+            const SizedBox(height: 4),
+            Text(desc, style: GoogleFonts.poppins(color: Colors.white54, fontSize: 12)),
+          ])),
+          if (isSelected) Icon(Icons.check_circle, color: color, size: 24),
+        ]),
+      ),
+    );
+  }
+
+  Widget _buildKBZBalanceCard(AppLocalizations l) {
+    final hasEnough = _kbzBalance >= widget.price;
+    return Container(
+      margin: const EdgeInsets.only(top: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.blue.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.blue.withOpacity(0.2)),
+      ),
+      child: Row(children: [
+        const Icon(Icons.account_balance_wallet, color: Colors.blue, size: 18),
+        const SizedBox(width: 8),
+        Expanded(child: Text('${l.balance}: ${_kbzBalance.toStringAsFixed(0)} K', style: GoogleFonts.poppins(color: Colors.white70, fontSize: 12))),
+        if (!hasEnough)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(color: Colors.red.withOpacity(0.1), borderRadius: BorderRadius.circular(4)),
+            child: Text(l.insufficientBalance, style: GoogleFonts.poppins(color: Colors.red, fontSize: 10)),
+          ),
+      ]),
+    );
+  }
+
+  Widget _buildPayButton(AppLocalizations l) {
+    final canPay = _selectedPaymentMethod != 'kbz_pay' || _kbzBalance >= widget.price;
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1A1A2E),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 10, offset: const Offset(0, -5))],
+      ),
+      child: ElevatedButton(
+        onPressed: (_isProcessing || !canPay) ? null : _processPayment,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFFFFD700),
+          foregroundColor: const Color(0xFF1A1A2E),
+          padding: const EdgeInsets.symmetric(vertical: 18),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          elevation: 5,
+          minimumSize: const Size(double.infinity, 50),
+        ),
+        child: _isProcessing
+            ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation(Color(0xFF1A1A2E))))
+            : Text(l.confirmPay(widget.currency, widget.price), style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600)),
+      ),
+    );
+  }
+
+  Future<void> _processPayment() async {
+    if (_selectedPaymentMethod == 'kbz_pay') {
+      await _processKBZPay();
+    } else {
+      await _processCash();
+    }
+  }
+
+  Future<void> _processCash() async {
+    setState(() => _isProcessing = true);
+    await Future.delayed(const Duration(seconds: 1)); // 模拟处理
+    setState(() => _isProcessing = false);
+    await _saveTripAndNavigate(paymentMethod: 'cash', paymentStatus: 'completed');
+  }
+
+  Future<void> _processKBZPay() async {
+    // 显示二维码弹窗
+    if (!mounted) return;
+    final result = await showDialog<Map<String, dynamic>>(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1A2E),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFFD700)),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              '支付处理中...',
-              style: GoogleFonts.poppins(
-                color: Colors.white,
-                fontSize: 14,
-              ),
-            ),
-          ],
+      builder: (ctx) => _KBZPayDialog(amount: widget.price, currency: widget.currency),
+    );
+    if (result != null && result['success'] == true) {
+      await _loadKBZBalance();
+      await _saveTripAndNavigate(
+        paymentMethod: 'kbz_pay',
+        paymentStatus: 'completed',
+        txId: result['transactionId'],
+      );
+    } else if (result != null && result['success'] == false) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(result['message'] ?? 'Payment failed'), backgroundColor: Colors.red),
+      );
+    }
+  }
+
+  Future<void> _saveTripAndNavigate({required String paymentMethod, required String paymentStatus, String? txId}) async {
+    final trip = Trip(
+      id: Trip.generateId(),
+      pickupAddress: widget.pickupAddress,
+      destinationAddress: widget.destinationAddress,
+      pickupTime: Trip.currentTime(),
+      dropoffTime: Trip.currentTime(),
+      price: widget.price,
+      currency: widget.currency,
+      vehicleType: widget.vehicleType,
+      vehicleName: widget.vehicleName,
+      driverName: widget.driverName,
+      driverRating: widget.driverRating,
+      vehiclePlate: widget.vehiclePlate,
+      status: 'completed',
+      distanceKm: widget.distanceKm,
+      paymentMethod: paymentMethod,
+      paymentStatus: paymentStatus,
+      paymentTransactionId: txId,
+    );
+    await TripStorage.saveTrip(trip);
+    if (!mounted) return;
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => RatingScreen(
+          driverName: widget.driverName,
+          driverRating: widget.driverRating,
+          vehiclePlate: widget.vehiclePlate,
+          price: widget.price,
+          currency: widget.currency,
+          tripId: trip.id,
         ),
       ),
     );
+  }
+}
 
-    // 模拟支付处理（2秒后跳转）
-    Future.delayed(const Duration(seconds: 2), () async {
-      Navigator.pop(context); // 关闭处理中对话框
+// KBZ Pay 二维码支付弹窗
+class _KBZPayDialog extends StatefulWidget {
+  final int amount;
+  final String currency;
+  const _KBZPayDialog({required this.amount, required this.currency});
 
-      // 保存行程到本地
-      final now = DateTime.now();
-      final pickupTime = DateTime(now.year, now.month, now.day, now.hour - 1, now.minute);
-      final trip = Trip(
-        id: Trip.generateId(),
-        pickupAddress: widget.pickupAddress,
-        destinationAddress: widget.destinationAddress,
-        pickupTime: Trip.currentTime(),
-        dropoffTime: Trip.currentTime(),
-        price: widget.price,
-        currency: widget.currency,
-        vehicleType: widget.vehicleType,
-        vehicleName: widget.vehicleName,
-        driverName: widget.driverName,
-        driverRating: widget.driverRating,
-        vehiclePlate: widget.vehiclePlate,
-        status: 'completed',
-        distanceKm: widget.distanceKm,
-      );
-      await TripStorage.saveTrip(trip);
+  @override
+  State<_KBZPayDialog> createState() => _KBZPayDialogState();
+}
 
-      // 跳转到评价页面
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => RatingScreen(
-            driverName: widget.driverName,
-            driverRating: widget.driverRating,
-            vehiclePlate: widget.vehiclePlate,
-            price: widget.price,
-            currency: widget.currency,
-            tripId: trip.id,
-          ),
-        ),
-      );
+class _KBZPayDialogState extends State<_KBZPayDialog> {
+  bool _isProcessing = true;
+  bool _isSuccess = false;
+  String _message = '';
+  String _txId = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _startPayment();
+  }
+
+  Future<void> _startPayment() async {
+    final result = await KBZPayService.processPayment(
+      amount: widget.amount.toDouble(),
+      tripId: 'TRIP${DateTime.now().millisecondsSinceEpoch}',
+    );
+    if (!mounted) return;
+    setState(() {
+      _isProcessing = false;
+      _isSuccess = result['success'];
+      _message = result['message'];
+      _txId = result['transactionId'] ?? '';
     });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    return AlertDialog(
+      backgroundColor: const Color(0xFF2A2A3E),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (_isProcessing) ...[
+            const SizedBox(height: 16),
+            const CircularProgressIndicator(valueColor: AlwaysStoppedAnimation(Color(0xFFFFD700))),
+            const SizedBox(height: 16),
+            Text(l.kbzProcessing, style: GoogleFonts.poppins(color: Colors.white)),
+            const SizedBox(height: 8),
+            // 显示二维码（模拟）
+            Container(
+              width: 180, height: 180,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8)),
+              child: QrImageView(
+                data: KBZPayService.generateQRData(merchantId: 'YANGONTAXI', amount: widget.amount.toDouble(), tripId: 'TRIPX'),
+                version: QrVersions.auto,
+                size: 156,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text('${l.amount}: ${widget.currency} ${widget.amount}', style: GoogleFonts.poppins(color: Colors.white70, fontSize: 12)),
+          ] else if (_isSuccess) ...[
+            const SizedBox(height: 16),
+            const Icon(Icons.check_circle, color: Colors.green, size: 64),
+            const SizedBox(height: 16),
+            Text(l.paymentSuccess, style: GoogleFonts.poppins(color: Colors.green, fontSize: 18, fontWeight: FontWeight.w600)),
+            const SizedBox(height: 8),
+            Text('${l.txId}: $_txId', style: GoogleFonts.poppins(color: Colors.white70, fontSize: 11)),
+            const SizedBox(height: 4),
+            Text('${l.amount}: ${widget.currency} ${widget.amount}', style: GoogleFonts.poppins(color: Colors.white70, fontSize: 12)),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, {'success': true, 'transactionId': _txId}),
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFFD700)),
+              child: Text(l.ok, style: GoogleFonts.poppins(color: const Color(0xFF1A1A2E))),
+            ),
+          ] else ...[
+            const SizedBox(height: 16),
+            const Icon(Icons.error, color: Colors.red, size: 64),
+            const SizedBox(height: 16),
+            Text(l.paymentFailed, style: GoogleFonts.poppins(color: Colors.red, fontSize: 18, fontWeight: FontWeight.w600)),
+            const SizedBox(height: 8),
+            Text(_message, style: GoogleFonts.poppins(color: Colors.white70, fontSize: 12), textAlign: TextAlign.center),
+            const SizedBox(height: 16),
+            Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
+              TextButton(onPressed: () => Navigator.pop(context, {'success': false}), child: Text(l.cancel, style: GoogleFonts.poppins(color: Colors.white54))),
+              ElevatedButton(onPressed: () => Navigator.pop(context), style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFFD700)), child: Text(l.retry, style: GoogleFonts.poppins(color: const Color(0xFF1A1A2E)))),
+            ]),
+          ],
+        ],
+      ),
+    );
   }
 }
