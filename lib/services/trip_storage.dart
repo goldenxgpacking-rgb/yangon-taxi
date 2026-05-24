@@ -92,6 +92,40 @@ class TripStorage {
         .fold<double>(0, (sum, t) => sum + t.distanceKm!);
   }
 
+  // ===== 常用地址 =====
+
+  static const String _savedAddressesKey = 'saved_addresses';
+
+  /// 获取所有常用地址
+  static Future<List<Map<String, String>>> getSavedAddresses() async {
+    final prefs = await SharedPreferences.getInstance();
+    final List<String> data = prefs.getStringList(_savedAddressesKey) ?? [];
+    return data.map((e) => Map<String, String>.from(jsonDecode(e))).toList();
+  }
+
+  /// 保存常用地址（新增或更新）
+  static Future<void> saveAddress(Map<String, String> address) async {
+    final prefs = await SharedPreferences.getInstance();
+    final List<String> data = prefs.getStringList(_savedAddressesKey) ?? [];
+    final id = address['id'] ?? DateTime.now().millisecondsSinceEpoch.toString();
+    address['id'] = id;
+    final idx = data.indexWhere((e) => jsonDecode(e)['id'] == id);
+    if (idx != -1) {
+      data[idx] = jsonEncode(address);
+    } else {
+      data.add(jsonEncode(address));
+    }
+    await prefs.setStringList(_savedAddressesKey, data);
+  }
+
+  /// 删除常用地址
+  static Future<void> deleteAddress(String id) async {
+    final prefs = await SharedPreferences.getInstance();
+    final List<String> data = prefs.getStringList(_savedAddressesKey) ?? [];
+    data.removeWhere((e) => jsonDecode(e)['id'] == id);
+    await prefs.setStringList(_savedAddressesKey, data);
+  }
+
   // ===== 用户资料 =====
 
   /// 保存用户资料

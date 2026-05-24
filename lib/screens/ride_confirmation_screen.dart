@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -234,6 +232,24 @@ class _RideConfirmationScreenState extends State<RideConfirmationScreen> {
                       ),
                     ),
 
+                    const SizedBox(height: 16),
+
+                    // 附近司机等待时间预估
+                    Text(
+                      '附近司机',
+                      style: GoogleFonts.poppins(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    _buildNearbyDriverCard('Aung Kyaw', 'CNG Car', '1/12345', '0.3 km', '2 min', 4.8, Colors.blue),
+                    const SizedBox(height: 8),
+                    _buildNearbyDriverCard('Min Thant', 'Oil Car', '6/54321', '0.5 km', '3 min', 4.5, Colors.green),
+                    const SizedBox(height: 8),
+                    _buildNearbyDriverCard('Thu Zar', 'EV Car', '2/67890', '0.8 km', '4 min', 4.9, Colors.purple),
+
                     const SizedBox(height: 24),
 
                     // 支付方式
@@ -384,5 +400,56 @@ class _RideConfirmationScreenState extends State<RideConfirmationScreen> {
       default:
         return Colors.blue;
     }
+  }
+
+  // 附近司机等待时间卡片
+  Widget _buildNearbyDriverCard(String name, String vehicle, String plate, String distance, String eta, double rating, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.3)),
+      ),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 18,
+            backgroundColor: color.withOpacity(0.15),
+            child: Text(name.substring(0, 1), style: GoogleFonts.poppins(color: color, fontWeight: FontWeight.w700, fontSize: 14)),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text(name, style: GoogleFonts.poppins(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
+                    const SizedBox(width: 6),
+                    Icon(Icons.star, color: const Color(0xFFFFD700), size: 12),
+                    Text('$rating', style: GoogleFonts.poppins(color: Colors.white70, fontSize: 11)),
+                  ],
+                ),
+                const SizedBox(height: 2),
+                Text('$vehicle · $plate', style: GoogleFonts.poppins(color: Colors.white54, fontSize: 11)),
+              ],
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(distance, style: GoogleFonts.poppins(color: Colors.white54, fontSize: 11)),
+              const SizedBox(height: 2),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(color: color.withOpacity(0.15), borderRadius: BorderRadius.circular(6)),
+                child: Text('$eta 到达', style: GoogleFonts.poppins(color: color, fontSize: 11, fontWeight: FontWeight.w600)),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 }

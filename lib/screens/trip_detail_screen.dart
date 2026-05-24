@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:share_plus/share_plus.dart';
 import '../models/trip.dart';
 import 'rating_screen.dart';
 
@@ -26,6 +27,12 @@ class TripDetailScreen extends StatelessWidget {
           icon: const Icon(Icons.arrow_back, color: Color(0xFFFFD700)),
           onPressed: () => Navigator.pop(context),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.share, color: Color(0xFFFFD700)),
+            onPressed: _shareTrip,
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -461,6 +468,24 @@ class TripDetailScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  // 分享行程
+  void _shareTrip() {
+    final vehicleTypeText = ['', 'CNG Car', 'Oil Car', 'EV Car', '私家车'][trip.vehicleType == 'cng' ? 1 : trip.vehicleType == 'oil' ? 2 : trip.vehicleType == 'ev' ? 3 : 4];
+    final shareText = '''
+🚕 Yangon Taxi 行程分享
+
+📍 上车：${trip.pickupAddress}
+🏁 目的地：${trip.destinationAddress}
+🚗 车型：$vehicleTypeText
+💰 费用：${trip.currency} ${trip.price}
+${trip.distanceKm != null ? '📏 里程：${trip.distanceKm} km\n' : ''}
+⭐ 司机：${trip.driverName}${trip.rating > 0 ? ' (${trip.rating}星)' : ''}
+
+— 使用 Yangon Taxi 安全出行 —
+''';
+    Share.share(shareText, subject: '我的 Yangon Taxi 行程');
   }
 
   // 获取状态颜色

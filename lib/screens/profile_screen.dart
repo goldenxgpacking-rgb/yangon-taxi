@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'trip_history_screen.dart';
+import 'saved_addresses_screen.dart';
 import 'login_screen.dart';
 import '../services/trip_storage.dart';
 
@@ -161,6 +162,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             const SizedBox(height: 24),
             _buildMenuItem(context, icon: Icons.history, title: '行程历史', subtitle: '查看过去的行程记录', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const TripHistoryScreen()))),
+            _buildMenuItem(context, icon: Icons.location_on, title: '常用地址', subtitle: '设置家和公司地址', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const SavedAddressesScreen()))),
             _buildMenuItem(context, icon: Icons.payment, title: '支付管理', subtitle: '管理支付方式和账单', onTap: () => _showComingSoon('支付管理')),
             _buildMenuItem(context, icon: Icons.local_offer, title: '优惠券', subtitle: '查看可用优惠券', onTap: () => _showComingSoon('优惠券')),
             _buildMenuItem(context, icon: Icons.notifications, title: '消息通知', subtitle: '行程通知、优惠信息', onTap: () => _showComingSoon('消息通知')),
