@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -39,6 +40,9 @@ class RideConfirmationScreen extends StatefulWidget {
 class _RideConfirmationScreenState extends State<RideConfirmationScreen> {
   bool _isAgreed = false;
   late List<LatLng> _routePoints;
+  GoogleMapController? _mapController;
+  int _visiblePointCount = 2; // 路线动画：逐步显示点数
+  late Timer _routeAnimTimer;
 
   @override
   void initState() {
@@ -47,6 +51,23 @@ class _RideConfirmationScreenState extends State<RideConfirmationScreen> {
       widget.pickupLocation,
       widget.destinationLocation,
     );
+    // 启动路线绘制动画
+    _routeAnimTimer = Timer.periodic(const Duration(milliseconds: 80), (timer) {
+      if (_visiblePointCount < _routePoints.length) {
+        setState(() {
+          _visiblePointCount++;
+        });
+      } else {
+        timer.cancel();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _routeAnimTimer.cancel();
+    _mapController?.dispose();
+    super.dispose();
   }
 
   @override
@@ -70,7 +91,7 @@ class _RideConfirmationScreenState extends State<RideConfirmationScreen> {
       ),
       body: Column(
         children: [
-          // 地图预览
+          // 地图预览（路线绘制动画）
           Expanded(
             flex: 2,
             child: GoogleMap(
@@ -85,34 +106,61 @@ class _RideConfirmationScreenState extends State<RideConfirmationScreen> {
                 ),
                 zoom: 13,
               ),
+              onMapCreated: (controller) {
+                _mapController = controller;
+                // 缩放到路线范围
+                final bounds = LatLngBounds(
+                  southwest: LatLng(
+                    widget.pickupLocation.latitude < widget.destinationLocation.latitude
+                        ? widget.pickupLocation.latitude
+                        : widget.destinationLocation.latitude,
+                    widget.pickupLocation.longitude < widget.destinationLocation.longitude
+                        ? widget.pickupLocation.longitude
+                        : widget.destinationLocation.longitude,
+                  ),
+                  northeast: LatLng(
+                    widget.pickupLocation.latitude >= widget.destinationLocation.latitude
+                        ? widget.pickupLocation.latitude
+                        : widget.destinationLocation.latitude,
+                    widget.pickupLocation.longitude >= widget.destinationLocation.longitude
+                        ? widget.pickupLocation.longitude
+                        : widget.destinationLocation.longitude,
+                  ),
+                );
+                _mapController?.animateCamera(CameraUpdate.newLatLngBounds(bounds, 60));
+              },
               markers: {
                 Marker(
                   markerId: const MarkerId('pickup'),
                   position: widget.pickupLocation,
-                  icon: BitmapDescriptor.defaultMarkerWithHue(
-                    BitmapDescriptor.hueYellow,
-                  ),
+                  icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueYellow),
                   infoWindow: const InfoWindow(title: '上车地点'),
                 ),
                 Marker(
                   markerId: const MarkerId('destination'),
                   position: widget.destinationLocation,
-                  icon: BitmapDescriptor.defaultMarkerWithHue(
-                    BitmapDescriptor.hueRed,
-                  ),
+                  icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
                   infoWindow: const InfoWindow(title: '目的地'),
                 ),
               },
               polylines: {
                 Polyline(
                   polylineId: const PolylineId('route'),
-                  points: _routePoints,
+                  points: _routePoints.sublist(0, _visiblePointCount.clamp(2, _routePoints.length)),
                   color: const Color(0xFFFFD700),
-                  width: 4,
+                  width: 5,
                   startCap: Cap.roundCap,
                   endCap: Cap.roundCap,
-                  patterns: [PatternItem.dash(20), PatternItem.gap(10)],
                 ),
+                // 已走过部分用虚线
+                if (_visiblePointCount > 5)
+                  Polyline(
+                    polylineId: const PolylineId('route_trail'),
+                    points: _routePoints.sublist(0, (_visiblePointCount * 0.3).round().clamp(2, _visiblePointCount - 2)),
+                    color: const Color(0xFFFFD700).withOpacity(0.3),
+                    width: 3,
+                    patterns: [PatternItem.dash(10), PatternItem.gap(8)],
+                  ),
               },
             ),
           ),

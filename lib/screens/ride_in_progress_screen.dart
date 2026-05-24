@@ -189,9 +189,12 @@ class _RideInProgressScreenState extends State<RideInProgressScreen> {
           _tripProgress = (elapsed / totalSeconds).clamp(0.0, 1.0);
           // 司机沿路线前进
           if (_routePath.isNotEmpty && _routeIndex < _routePath.length - 1) {
-            // 根据路线点数和剩余时间计算步进
             final stepsPerSecond = max(1, (_routePath.length / totalSeconds).ceil());
             _routeIndex = min(_routeIndex + stepsPerSecond, _routePath.length - 1);
+            // 相机跟随司机位置
+            _mapController?.animateCamera(
+              CameraUpdate.newLatLng(_routePath[_routeIndex]),
+            );
           }
         } else {
           _tripProgress = 1.0;
@@ -268,6 +271,7 @@ class _RideInProgressScreenState extends State<RideInProgressScreen> {
             myLocationEnabled: true,
             myLocationButtonEnabled: false,
             zoomControlsEnabled: false,
+            onCameraMove: (_) {},
             markers: {
               Marker(
                 markerId: const MarkerId('driver'),

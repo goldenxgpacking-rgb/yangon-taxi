@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../utils/route_generator.dart';
@@ -43,11 +44,14 @@ class _WaitingDriverScreenState extends State<WaitingDriverScreen> {
   late Timer _timer;
   int _remainingSeconds = 180;
   bool _driverFound = false;
+  bool _driverArrived = false;
+  bool _showArrivalBanner = false;
   
   // 司机位置和路线
   late LatLng _driverStartLocation;
   late List<LatLng> _routePoints;
   int _currentRouteIndex = 0;
+  GoogleMapController? _mapController;
   
   // 模拟司机信息
   final String _driverName = 'U Mya Win';
@@ -112,11 +116,43 @@ class _WaitingDriverScreenState extends State<WaitingDriverScreen> {
       setState(() {
         if (_currentRouteIndex < _routePoints.length - 1) {
           _currentRouteIndex++;
+          // 相机跟随司机移动
+          _mapController?.animateCamera(
+            CameraUpdate.newLatLng(_routePoints[_currentRouteIndex]),
+          );
+          // 检测司机到达
+          if (_currentRouteIndex >= _routePoints.length - 1 && !_driverArrived) {
+            _onDriverArrived();
+          }
         } else {
           _timer.cancel();
         }
       });
     });
+  }
+
+  // 司机到达回调
+  void _onDriverArrived() {
+    _driverArrived = true;
+    _showArrivalBanner = true;
+    HapticFeedback.heavyImpact();
+    Future.delayed(const Duration(seconds: 5), () {
+      if (mounted) setState(() => _showArrivalBanner = false);
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.check_circle, color: Colors.green),
+            const SizedBox(width: 10),
+            Expanded(child: Text('🚗 司机 $_driverName 已到达上车点！', style: GoogleFonts.poppins())),
+          ],
+        ),
+        backgroundColor: const Color(0xFF1A1A2E),
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 4),
+      ),
+    );
   }
 
   // 计算当前司机位置
@@ -161,6 +197,7 @@ class _WaitingDriverScreenState extends State<WaitingDriverScreen> {
   @override
   void dispose() {
     _timer.cancel();
+    _mapController?.dispose();
     super.dispose();
   }
 
@@ -176,6 +213,9 @@ class _WaitingDriverScreenState extends State<WaitingDriverScreen> {
               target: widget.pickupLocation,
               zoom: 14,
             ),
+            onMapCreated: (controller) {
+              _mapController = controller;
+            },
             myLocationEnabled: true,
             myLocationButtonEnabled: false,
             zoomControlsEnabled: false,
@@ -216,9 +256,43 @@ class _WaitingDriverScreenState extends State<WaitingDriverScreen> {
             },
           ),
 
+          // 司机到达横幅
+          if (_showArrivalBanner)
+            Positioned(
+              top: MediaQuery.of(context).padding.top + 10,
+              left: 16,
+              right: 16,
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(colors: [Colors.green, Color(0xFF1B5E20)]),
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(color: Colors.green.withOpacity(0.3), blurRadius: 15),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.directions_car, color: Colors.white, size: 28),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('司机已到达！', style: GoogleFonts.poppins(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w700)),
+                          Text('$_driverName · $_driverPlate 正在等候', style: GoogleFonts.poppins(color: Colors.white70, fontSize: 12)),
+                        ],
+                      ),
+                    ),
+                    const Icon(Icons.check_circle, color: Colors.white, size: 28),
+                  ],
+                ),
+              ),
+            ),
+
           // 顶部状态栏
           Positioned(
-            top: MediaQuery.of(context).padding.top + 10,
+            top: MediaQuery.of(context).padding.top + 10 + (_showArrivalBanner ? 80 : 0),
             left: 16,
             right: 16,
             child: Container(
@@ -511,7 +585,7 @@ class _WaitingDriverScreenState extends State<WaitingDriverScreen> {
                     const SizedBox(height: 12),
                     // 开始行程按钮
                     ElevatedButton(
-                      onPressed: _etaMinutes <= 0
+                      onPressed: _driverArrived
                           ? () {
                               Navigator.pushReplacement(
                                 context,
@@ -531,10 +605,10 @@ class _WaitingDriverScreenState extends State<WaitingDriverScreen> {
                                 ),
                               );
                             }
-                          : null, // 司机未到达前禁用
+                          : null,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFFFD700),
-                        foregroundColor: const Color(0xFF1A1A2E),
+                        backgroundColor: _driverArrived ? const Color(0xFFFFD700) : Colors.grey,
+                        foregroundColor: _driverArrived ? const Color(0xFF1A1A2E) : Colors.white54,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -546,12 +620,12 @@ class _WaitingDriverScreenState extends State<WaitingDriverScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(
-                            _etaMinutes <= 0 ? Icons.play_arrow : Icons.hourglass_empty,
+                            _driverArrived ? Icons.play_arrow : Icons.hourglass_empty,
                             size: 20,
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            _etaMinutes <= 0 ? '开始行程' : '等待司机到达...',
+                            _driverArrived ? '开始行程' : '等待司机到达 ($_etaMinutes min)...',
                             style: GoogleFonts.poppins(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
