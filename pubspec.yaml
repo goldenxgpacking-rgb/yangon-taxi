@@ -33,14 +33,14 @@ dependencies:
   flutter_polyline_points: ^2.1.0
 
   # ç½‘ç»œ
-  http: ^1.2.1
+  http: ^1.1.0
 
   # 安全存储 & 文件路径
-  flutter_secure_storage: ^9.2.2
-  path_provider: ^2.1.4
+  flutter_secure_storage: ^9.0.0
+  path_provider: ^2.1.1
 
   # 本地通知
-  flutter_local_notifications: ^18.0.1
+  flutter_local_notifications: ^17.2.3
 
   # å¤´åƒä¸Šä¼ 
   image_picker: ^1.1.2
