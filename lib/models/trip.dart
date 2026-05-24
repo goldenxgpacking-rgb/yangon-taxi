@@ -15,6 +15,9 @@ class Trip {
   final String driverRating;
   final String vehiclePlate;
   final String status; // completed, cancelled, ongoing
+  final String paymentMethod; // 'cash', 'kbz_pay'
+  final String paymentStatus; // 'pending', 'completed', 'failed'
+  final String? paymentTransactionId; // KBZ Pay transaction ID
   final int rating; // 用户评分（0-5，0表示未评价）
   final String? comment; // 用户评价内容
   final double? distanceKm; // 行程距离（公里）
@@ -36,6 +39,9 @@ class Trip {
     this.rating = 0,
     this.comment,
     this.distanceKm,
+    this.paymentMethod = 'cash',
+    this.paymentStatus = 'pending',
+    this.paymentTransactionId,
   });
 
   // 序列化为 Map
@@ -57,6 +63,9 @@ class Trip {
       'rating': rating,
       'comment': comment,
       'distanceKm': distanceKm,
+      'paymentMethod': paymentMethod,
+      'paymentStatus': paymentStatus,
+      'paymentTransactionId': paymentTransactionId,
     };
   }
 
@@ -79,6 +88,9 @@ class Trip {
       rating: map['rating'] ?? 0,
       comment: map['comment'],
       distanceKm: map['distanceKm']?.toDouble(),
+      paymentMethod: map['paymentMethod'] ?? 'cash',
+      paymentStatus: map['paymentStatus'] ?? 'pending',
+      paymentTransactionId: map['paymentTransactionId'],
     );
   }
 
