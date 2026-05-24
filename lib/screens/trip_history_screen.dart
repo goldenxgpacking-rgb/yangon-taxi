@@ -503,7 +503,7 @@ class _TripHistoryScreenState extends State<TripHistoryScreen> {
                   Icon(vehicleIcon, color: vehicleColor, size: 16),
                   const SizedBox(width: 4),
                   Text(
-                    trip.vehicleName,
+                    trip.vehicleName ?? "",
                     style: GoogleFonts.poppins(
                       color: Colors.white,
                       fontSize: 12,

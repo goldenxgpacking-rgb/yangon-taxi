@@ -147,7 +147,7 @@ class TripDetailScreen extends StatelessWidget {
                               ),
                             ),
                             Text(
-                              trip.destinationAddress,
+                              trip.destinationAddress ?? "",
                               style: GoogleFonts.poppins(
                                 color: Colors.white,
                                 fontSize: 12,
@@ -208,7 +208,7 @@ class TripDetailScreen extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        trip.dropoffTime,
+                        trip.dropoffTime ?? '',
                         style: GoogleFonts.poppins(
                           color: Colors.white,
                           fontSize: 12,
@@ -251,7 +251,7 @@ class TripDetailScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          trip.driverName,
+                          trip.driverName ?? '',
                           style: GoogleFonts.poppins(
                             color: Colors.white,
                             fontSize: 14,
@@ -267,7 +267,7 @@ class TripDetailScreen extends StatelessWidget {
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              trip.driverRating,
+                              trip.driverRating ?? "",
                               style: GoogleFonts.poppins(
                                 color: Colors.white70,
                                 fontSize: 12,
@@ -275,7 +275,7 @@ class TripDetailScreen extends StatelessWidget {
                             ),
                             const SizedBox(width: 12),
                             Text(
-                              trip.vehiclePlate,
+                              trip.vehiclePlate ?? "",
                               style: GoogleFonts.poppins(
                                 color: Colors.white54,
                                 fontSize: 12,
@@ -407,9 +407,9 @@ class TripDetailScreen extends StatelessWidget {
                           context,
                           MaterialPageRoute(
                             builder: (context) => RatingScreen(
-                              driverName: trip.driverName,
-                              driverRating: trip.driverRating,
-                              vehiclePlate: trip.vehiclePlate,
+                              driverName: trip.driverName ?? "",
+                              driverRating: trip.driverRating ?? "",
+                              vehiclePlate: trip.vehiclePlate ?? "",
                               price: trip.price,
                               currency: trip.currency,
                             ),
