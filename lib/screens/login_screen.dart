@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
+import '../l10n/app_localizations.dart';
 import 'register_screen.dart';
 import 'otp_screen.dart';
 
@@ -68,7 +69,7 @@ class _LoginScreenState extends State<LoginScreen> {
               
               // 手机号输入
               Text(
-                '手机号登录',
+                AppLocalizations.of(context).phoneNumber,
                 style: GoogleFonts.poppins(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
@@ -80,7 +81,7 @@ class _LoginScreenState extends State<LoginScreen> {
               IntlPhoneField(
                 controller: _phoneController,
                 decoration: InputDecoration(
-                  labelText: '手机号',
+                  labelText: AppLocalizations.of(context).phoneNumber,
                   labelStyle: const TextStyle(color: Colors.white70),
                   filled: true,
                   fillColor: Colors.white.withOpacity(0.1),

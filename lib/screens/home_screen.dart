@@ -7,6 +7,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../l10n/app_localizations.dart';
 import 'destination_screen.dart';
 import 'trip_history_screen.dart';
 import 'profile_screen.dart';
@@ -508,18 +509,18 @@ class _HomeScreenState extends State<HomeScreen> {
         selectedItemColor: const Color(0xFFFFD700),
         unselectedItemColor: Colors.white54,
         type: BottomNavigationBarType.fixed,
-        items: const [
+        items: [
           BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: '首页',
+            icon: const Icon(Icons.home),
+            label: AppLocalizations.of(context).home,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.history),
-            label: '行程',
+            icon: const Icon(Icons.history),
+            label: AppLocalizations.of(context).trips,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: '我的',
+            icon: const Icon(Icons.person),
+            label: AppLocalizations.of(context).myProfile,
           ),
         ],
       ),
