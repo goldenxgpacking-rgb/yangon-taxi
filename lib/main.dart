@@ -46,8 +46,10 @@ class _YangonTaxiAppState extends State<YangonTaxiApp> {
   @override
   void initState() {
     super.initState();
-    // Load saved locale on startup
-    context.read<LocaleProvider>().init();
+    // Load saved locale on startup (must use read, not watch, in initState)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<LocaleProvider>().init();
+    });
   }
 
   @override
