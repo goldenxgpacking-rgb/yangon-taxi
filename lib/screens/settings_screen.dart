@@ -177,7 +177,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           const SizedBox(height: 24),
 
-          _sectionTitle('Other / အခြားနေရာ'),
+          _sectionTitle(l.other),
           ListTile(
             leading: Container(
               width: 36,

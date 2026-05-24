@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'package:flutter/material.dart';
 
 abstract class AppLocalizations {
@@ -194,6 +194,7 @@ abstract class AppLocalizations {
   String get clearCacheDesc;
   String get cacheCleared;
   String get aboutApp;
+  String get other;
   String get version;
 
   // ===== 等级 =====
@@ -431,6 +432,7 @@ class AppLocalizationsZh extends AppLocalizations {
   @override String get clearCacheDesc => '清除本地缓存数据';
   @override String get cacheCleared => '缓存已清除';
   @override String get aboutApp => '关于 Yangon Taxi';
+  @override String get other => '其他';
   @override String get version => '版本 1.0.0';
 
   @override String get memberTier => '会员等级';
@@ -639,6 +641,7 @@ class AppLocalizationsEn extends AppLocalizations {
   @override String get clearCacheDesc => 'Clear local cache data';
   @override String get cacheCleared => 'Cache cleared';
   @override String get aboutApp => 'About Yangon Taxi';
+  @override String get other => 'Other';
   @override String get version => 'Version 1.0.0';
 
   @override String get memberTier => 'Member Tier';
@@ -847,6 +850,7 @@ class AppLocalizationsMy extends AppLocalizations {
   @override String get clearCacheDesc => 'ဒေါင်းမြှုပ်နှံသိမ်းဆည်းမှုဖျက်';
   @override String get cacheCleared => 'ကုန်ဆုံးသိမ်းဆည်းမှုဖျက်ပြီး';
   @override String get aboutApp => 'Yangon Taxi အကြောင်း';
+  @override String get other => 'အခြား';
   @override String get version => 'ဗားရှင်း 1.0.0';
 
   @override String get memberTier => 'အဆင့်ဝင်အဖွဲ့ဝင်မှု';
