@@ -36,11 +36,11 @@ dependencies:
   http: ^1.2.1
 
   # 安全存储 & 文件路径
-  flutter_secure_storage: ^9.0.0
+  flutter_secure_storage: ^9.2.2
   path_provider: ^2.1.4
 
   # 本地通知
-  flutter_local_notifications: ^17.2.3
+  flutter_local_notifications: ^18.0.1
 
   # å¤´åƒä¸Šä¼ 
   image_picker: ^1.1.2
