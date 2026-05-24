@@ -1,5 +1,5 @@
-name: yangon_taxi
-description: "Yangon Taxi - 仰光打车应用"
+﻿name: yangon_taxi
+description: "Yangon Taxi - ä»°å…‰æ‰“è½¦åº”ç”¨"
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -11,39 +11,39 @@ dependencies:
   flutter:
     sdk: flutter
 
-  # 基础UI
+  # åŸºç¡€UI
   google_fonts: ^6.1.0
   cupertino_icons: ^1.0.8
   flutter_svg: ^2.0.10
 
-  # 登录/注册
+  # ç™»å½•/æ³¨å†Œ
   intl_phone_field: ^3.0.1
   pin_code_fields: ^8.0.1
   sms_autofill: ^2.4.1
 
-  # 状态 & 存储
+  # çŠ¶æ€ & å­˜å‚¨
   provider: ^6.1.1
   shared_preferences: ^2.3.2
 
-  # 地图和定位
+  # åœ°å›¾å’Œå®šä½
   google_maps_flutter: ^2.10.1
   geolocator: ^13.0.2
   geocoding: ^3.0.0
   permission_handler: ^11.3.1
   flutter_polyline_points: ^2.1.0
 
-  # 网络
+  # ç½‘ç»œ
   http: ^1.2.1
 
-  # 头像上传
+  # å¤´åƒä¸Šä¼ 
   image_picker: ^1.1.2
 
-  # 多语言
+  # å¤šè¯­è¨€
   flutter_localizations:
     sdk: flutter
-  intl: ^0.20.1
+  intl: ^0.19.0
 
-  # SOS / 拨号
+  # SOS / æ‹¨å·
   url_launcher: ^6.3.1
 
   # KBZ Pay QR
