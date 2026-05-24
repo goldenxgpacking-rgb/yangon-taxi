@@ -259,7 +259,7 @@ class _AppLocalizationsDelegate
   }
 
   @override
-  bool shouldReload(_AppLocalizationsDelegate old) => false;
+  bool shouldReload(_AppLocalizationsDelegate old) => true;  // 切换语言时必须重新加载
 }
 
 // ============================================================
