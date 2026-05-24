@@ -6,6 +6,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:geocoding/geocoding.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'destination_screen.dart';
 import 'trip_history_screen.dart';
 import 'profile_screen.dart';
@@ -180,10 +181,46 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
 
+        // SOS 紧急按钮
+        Positioned(
+          right: 16,
+          bottom: 100,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              GestureDetector(
+                onTap: _showSOSPanel,
+                child: Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    color: Colors.red,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.red.withOpacity(0.4),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.sos, color: Colors.white, size: 22),
+                      Text('SOS', style: GoogleFonts.poppins(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700)),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+
         // 附近司机数量提示
         Positioned(
           bottom: 100,
-          right: 16,
+          left: 16,
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
@@ -306,6 +343,143 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
     );
+  }
+
+  // SOS 模拟附近司机数据
+  final List<Map<String, dynamic>> _sosDrivers = [
+    {'name': 'Aung Kyaw', 'phone': '+959123456789', 'distance': '0.3 km', 'vehicle': 'Toyota Vios', 'plate': '1/12345', 'rating': 4.8},
+    {'name': 'Min Thant', 'phone': '+959987654321', 'distance': '0.5 km', 'vehicle': 'Honda Fit', 'plate': '6/54321', 'rating': 4.5},
+    {'name': 'Thu Zar', 'phone': '+959555123456', 'distance': '0.8 km', 'vehicle': 'Suzuki Alto', 'plate': '2/67890', 'rating': 4.9},
+    {'name': 'Zaw Win', 'phone': '+959777888999', 'distance': '1.2 km', 'vehicle': 'Nissan Sunny', 'plate': '3/11223', 'rating': 4.2},
+  ];
+
+  // 显示 SOS 面板
+  void _showSOSPanel() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF1A1A2E),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      isScrollControlled: true,
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.7,
+        minChildSize: 0.4,
+        maxChildSize: 0.9,
+        expand: false,
+        builder: (context, scrollController) => Container(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            children: [
+              Container(
+                width: 40, height: 4, margin: const EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.warning_amber_rounded, color: Colors.red, size: 28),
+                  const SizedBox(width: 8),
+                  Text('紧急求助 SOS', style: GoogleFonts.poppins(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w700)),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Text('以下司机在您附近，可直接联系', style: GoogleFonts.poppins(color: Colors.white54, fontSize: 13)),
+              const SizedBox(height: 16),
+              // 报警按钮
+              Container(
+                width: double.infinity,
+                margin: const EdgeInsets.only(bottom: 16),
+                child: ElevatedButton.icon(
+                  onPressed: () => _callPhone('999'),
+                  icon: const Icon(Icons.local_police, color: Colors.white),
+                  label: Text('拨打报警电话 999', style: GoogleFonts.poppins(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red.shade700,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+              ),
+              const Divider(color: Colors.white12),
+              const SizedBox(height: 8),
+              Text('附近司机', style: GoogleFonts.poppins(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.w600)),
+              const SizedBox(height: 12),
+              Expanded(
+                child: ListView.separated(
+                  controller: scrollController,
+                  itemCount: _sosDrivers.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 10),
+                  itemBuilder: (context, index) {
+                    final driver = _sosDrivers[index];
+                    return Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.06),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.white.withOpacity(0.08)),
+                      ),
+                      child: Row(
+                        children: [
+                          CircleAvatar(
+                            backgroundColor: Colors.red.withOpacity(0.15),
+                            child: Text('${driver['name']}'.substring(0, 1), style: GoogleFonts.poppins(color: Colors.red, fontWeight: FontWeight.w700, fontSize: 18)),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Text(driver['name'], style: GoogleFonts.poppins(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w600)),
+                                    const SizedBox(width: 6),
+                                    Icon(Icons.star, color: const Color(0xFFFFD700), size: 14),
+                                    Text('${driver['rating']}', style: GoogleFonts.poppins(color: Colors.white70, fontSize: 12)),
+                                  ],
+                                ),
+                                const SizedBox(height: 2),
+                                Text('${driver['vehicle']} · ${driver['plate']}', style: GoogleFonts.poppins(color: Colors.white54, fontSize: 12)),
+                                Text('${driver['distance']} 远', style: GoogleFonts.poppins(color: const Color(0xFFFFD700), fontSize: 12, fontWeight: FontWeight.w500)),
+                              ],
+                            ),
+                          ),
+                          ElevatedButton(
+                            onPressed: () => _callPhone(driver['phone']),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.phone, size: 16),
+                                const SizedBox(width: 4),
+                                Text('呼叫', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600)),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // 拨打电话
+  Future<void> _callPhone(String number) async {
+    final uri = Uri.parse('tel:$number');
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    }
   }
 
   @override
