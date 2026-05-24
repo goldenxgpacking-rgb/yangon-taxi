@@ -211,10 +211,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             const SizedBox(height: 20),
             // 菜单项
-            _buildMenuItem(Icons.location_on, '常用地址', 'saved_addresses_screen.dart'),
-            _buildMenuItem(Icons.card_giftcard, '推荐有礼', 'referral_screen.dart'),
-            _buildMenuItem(Icons.star, '会员权益', 'tier_detail_screen.dart'),
-            _buildMenuItem(Icons.settings, '设置', 'settings_screen.dart'),
+            _buildMenuItem(Icons.location_on, '常用地址', '/saved_addresses'),
+            _buildMenuItem(Icons.card_giftcard, '推荐有礼', '/referral'),
+            _buildMenuItem(Icons.star, '会员权益', '/tier_detail'),
+            _buildMenuItem(Icons.settings, '设置', '/settings'),
             const SizedBox(height: 20),
             // 退出登录
             SizedBox(
@@ -237,7 +237,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildMenuItem(IconData icon, String title, String route) {
+  Widget _buildMenuItem(IconData icon, String title, String routeName) {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
@@ -249,7 +249,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         title: Text(title, style: GoogleFonts.poppins(color: Colors.white, fontSize: 15)),
         trailing: const Icon(Icons.chevron_right, color: Colors.white70),
         onTap: () {
-          // TODO: 导航到对应页面
+          Navigator.pushNamed(context, routeName);
         },
       ),
     );

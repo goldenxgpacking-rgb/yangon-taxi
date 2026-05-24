@@ -23,6 +23,7 @@ import 'screens/settings_screen.dart';
 import 'screens/referral_screen.dart';
 import 'screens/kbz_pay_screen.dart';
 import 'screens/tier_detail_screen.dart';
+import 'screens/saved_addresses_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -92,6 +93,7 @@ class _YangonTaxiAppState extends State<YangonTaxiApp> {
         '/referral': (context) => const ReferralScreen(),
         '/kbz_pay': (context) => const KBZPayScreen(),
         '/tier_detail': (context) => const TierDetailScreen(),
+        '/saved_addresses': (context) => const SavedAddressesScreen(),
       },
       );
     },
