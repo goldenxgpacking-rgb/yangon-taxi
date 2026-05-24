@@ -92,6 +92,7 @@ class _RideInProgressScreenState extends State<RideInProgressScreen> {
         builder: (context) => PaymentScreen(
           pickupAddress: widget.pickupAddress,
           destinationAddress: widget.destinationAddress,
+          vehicleType: widget.vehicleType,
           vehicleName: widget.vehicleName,
           price: widget.price,
           currency: widget.currency,

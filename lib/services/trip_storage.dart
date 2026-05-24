@@ -18,11 +18,42 @@ class TripStorage {
     await prefs.setStringList(_tripKey, trips);
   }
 
+  /// 更新指定 ID 的行程（替换原记录，不新增）
+  static Future<void> updateTrip(Trip updatedTrip) async {
+    final prefs = await SharedPreferences.getInstance();
+    final List<String> trips = prefs.getStringList(_tripKey) ?? [];
+    final idx = trips.indexWhere(
+      (t) => jsonDecode(t)['id'] == updatedTrip.id,
+    );
+    if (idx != -1) {
+      trips[idx] = jsonEncode(updatedTrip.toMap());
+      await prefs.setStringList(_tripKey, trips);
+    }
+  }
+
   /// 获取所有已保存的行程
   static Future<List<Trip>> getAllTrips() async {
     final prefs = await SharedPreferences.getInstance();
     final List<String> trips = prefs.getStringList(_tripKey) ?? [];
     return trips.map((t) => Trip.fromMap(jsonDecode(t))).toList();
+  }
+
+  /// 根据 ID 获取单条行程
+  static Future<Trip?> getTripById(String id) async {
+    final trips = await getAllTrips();
+    try {
+      return trips.firstWhere((t) => t.id == id);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// 删除指定 ID 的行程
+  static Future<void> deleteTrip(String id) async {
+    final prefs = await SharedPreferences.getInstance();
+    final List<String> trips = prefs.getStringList(_tripKey) ?? [];
+    trips.removeWhere((t) => jsonDecode(t)['id'] == id);
+    await prefs.setStringList(_tripKey, trips);
   }
 
   /// 获取行程数量
@@ -35,6 +66,30 @@ class TripStorage {
   static Future<void> clearTrips() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_tripKey);
+  }
+
+  // ===== 统计 =====
+
+  /// 获取总行程数（已完成）
+  static Future<int> getCompletedCount() async {
+    final trips = await getAllTrips();
+    return trips.where((t) => t.status == 'completed').length;
+  }
+
+  /// 获取总花费
+  static Future<int> getTotalSpent() async {
+    final trips = await getAllTrips();
+    return trips
+        .where((t) => t.status == 'completed')
+        .fold<int>(0, (sum, t) => sum + t.price);
+  }
+
+  /// 获取总行驶公里数
+  static Future<double> getTotalDistance() async {
+    final trips = await getAllTrips();
+    return trips
+        .where((t) => t.status == 'completed' && t.distanceKm != null)
+        .fold<double>(0, (sum, t) => sum + t.distanceKm!);
   }
 
   // ===== 用户资料 =====

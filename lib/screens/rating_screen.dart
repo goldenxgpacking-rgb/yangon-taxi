@@ -57,28 +57,27 @@ class _RatingScreenState extends State<RatingScreen> {
 
       // 更新行程评分
       if (widget.tripId != null) {
-        final trips = await TripStorage.getAllTrips();
-        final idx = trips.indexWhere((t) => t.id == widget.tripId);
-        if (idx != -1) {
+        final trip = await TripStorage.getTripById(widget.tripId!);
+        if (trip != null) {
           final updated = Trip(
-            id: trips[idx].id,
-            pickupAddress: trips[idx].pickupAddress,
-            destinationAddress: trips[idx].destinationAddress,
-            pickupTime: trips[idx].pickupTime,
-            dropoffTime: trips[idx].dropoffTime,
-            price: trips[idx].price,
-            currency: trips[idx].currency,
-            vehicleType: trips[idx].vehicleType,
-            vehicleName: trips[idx].vehicleName,
-            driverName: trips[idx].driverName,
-            driverRating: trips[idx].driverRating,
-            vehiclePlate: trips[idx].vehiclePlate,
-            status: trips[idx].status,
+            id: trip.id,
+            pickupAddress: trip.pickupAddress,
+            destinationAddress: trip.destinationAddress,
+            pickupTime: trip.pickupTime,
+            dropoffTime: trip.dropoffTime,
+            price: trip.price,
+            currency: trip.currency,
+            vehicleType: trip.vehicleType,
+            vehicleName: trip.vehicleName,
+            driverName: trip.driverName,
+            driverRating: trip.driverRating,
+            vehiclePlate: trip.vehiclePlate,
+            status: trip.status,
             rating: _rating,
             comment: _commentController.text.trim().isEmpty ? null : _commentController.text.trim(),
-            distanceKm: trips[idx].distanceKm,
+            distanceKm: trip.distanceKm,
           );
-          await TripStorage.saveTrip(updated);
+          await TripStorage.updateTrip(updated);
         }
       }
 

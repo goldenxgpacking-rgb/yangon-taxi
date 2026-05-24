@@ -7,6 +7,7 @@ import '../services/trip_storage.dart';
 class PaymentScreen extends StatefulWidget {
   final String pickupAddress;
   final String destinationAddress;
+  final String vehicleType;
   final String vehicleName;
   final int price;
   final String currency;
@@ -20,6 +21,7 @@ class PaymentScreen extends StatefulWidget {
     super.key,
     required this.pickupAddress,
     required this.destinationAddress,
+    required this.vehicleType,
     required this.vehicleName,
     required this.price,
     this.currency = 'K',
@@ -430,7 +432,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
         dropoffTime: Trip.currentTime(),
         price: widget.price,
         currency: widget.currency,
-        vehicleType: _selectedPaymentMethod == 'cash' ? 'cash' : 'kbz',
+        vehicleType: widget.vehicleType,
         vehicleName: widget.vehicleName,
         driverName: widget.driverName,
         driverRating: widget.driverRating,
