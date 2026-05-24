@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import '../../utils/route_generator.dart';
 import 'waiting_driver_screen.dart';
 
 class RideConfirmationScreen extends StatefulWidget {
@@ -37,6 +38,16 @@ class RideConfirmationScreen extends StatefulWidget {
 
 class _RideConfirmationScreenState extends State<RideConfirmationScreen> {
   bool _isAgreed = false;
+  late List<LatLng> _routePoints;
+
+  @override
+  void initState() {
+    super.initState();
+    _routePoints = RouteGenerator.generateCurvedRoute(
+      widget.pickupLocation,
+      widget.destinationLocation,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -95,9 +106,12 @@ class _RideConfirmationScreenState extends State<RideConfirmationScreen> {
               polylines: {
                 Polyline(
                   polylineId: const PolylineId('route'),
-                  points: [widget.pickupLocation, widget.destinationLocation],
+                  points: _routePoints,
                   color: const Color(0xFFFFD700),
-                  width: 3,
+                  width: 4,
+                  startCap: Cap.roundCap,
+                  endCap: Cap.roundCap,
+                  patterns: [PatternItem.dash(20), PatternItem.gap(10)],
                 ),
               },
             ),

@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import '../../utils/route_generator.dart';
 import 'ride_in_progress_screen.dart';
 
 class WaitingDriverScreen extends StatefulWidget {
@@ -65,7 +66,7 @@ class _WaitingDriverScreenState extends State<WaitingDriverScreen> {
   void _generateMockRoute() {
     // 司机起始位置（模拟在附近 2-3km）
     final random = Random();
-    final latOffset = (random.nextDouble() - 0.5) * 0.02; // ±~1km
+    final latOffset = (random.nextDouble() - 0.5) * 0.02;
     final lngOffset = (random.nextDouble() - 0.5) * 0.02;
     
     _driverStartLocation = LatLng(
@@ -73,32 +74,12 @@ class _WaitingDriverScreenState extends State<WaitingDriverScreen> {
       widget.pickupLocation.longitude + lngOffset,
     );
 
-    // 生成中间点（模拟道路曲线）
-    _routePoints = _generateCurvedRoute(_driverStartLocation, widget.pickupLocation);
-  }
-
-  // 生成曲线路线（模拟真实道路）
-  List<LatLng> _generateCurvedRoute(LatLng start, LatLng end) {
-    final points = <LatLng>[];
-    const numPoints = 20; // 路线点数
-
-    for (int i = 0; i <= numPoints; i++) {
-      final t = i / numPoints;
-      
-      // 直线插值
-      final lat = start.latitude + (end.latitude - start.latitude) * t;
-      final lng = start.longitude + (end.longitude - start.longitude) * t;
-      
-      // 添加随机偏移（模拟道路弯曲）
-      final random = Random(42 + i); // 固定种子使路线一致
-      final offset = 0.003; // ~300m 偏移
-      final curvedLat = lat + (random.nextDouble() - 0.5) * offset;
-      final curvedLng = lng + (random.nextDouble() - 0.5) * offset;
-      
-      points.add(LatLng(curvedLat, curvedLng));
-    }
-    
-    return points;
+    // 使用共享路线生成器
+    _routePoints = RouteGenerator.generateCurvedRoute(
+      _driverStartLocation,
+      widget.pickupLocation,
+      numPoints: 20,
+    );
   }
 
   // 开始搜索司机
