@@ -1077,9 +1077,7 @@ class AppLocalizationsMy extends AppLocalizations {
   @override String get earnedLabel => 'ရရှိ';
   @override String inviteSuccess(int count, int amount) => '🎉 $count ဦးကိုအောင်မြင်စွာဖိတ်ခေါက်ပြီး၊ $amount K ကူပွန်ရ!';
   @override String codeCopiedMsg(String code) => 'ဖိတ်ခေါ်ကုဒ်ကူးယူပြီး: $code';
-  @override String shareMessage(String code, int amount) => '[Yangon Taxi ဖိတ်ခေါ်ဆုရ]
-ဖိတ်ခေါ်ကုဒ်: $code
-ဤကုဒ်ဖြင့်အဖွဲ့ဝင်ပါ၊ နှစ်ဘက်လုံး $amount K ကူပွန်ရ!';
+  @override String shareMessage(String code, int amount) => '[Yangon Taxi \u1016\u102d\u1010\u103a\u1001\u1031\u102b\u103a\u1000\u102f\u1012\u103a \u1006\u002f\u1038]\n\u1016\u102d\u1010\u103a\u1000\u102f\u1012\u103a: \n\u1014\u1000\u102f\u1012\u103a\u102b\u103c\u103a\u1010\u103c\u1004\u1037\u103a\u1001\u102d\u103e\u1015\u102b\u1010\u103a\u1010\u103c\u1004\u1037\u1015\u102b\u1010\u103a\u1010\u103c\u1004\u1037\u1015\u102f\u1000\u102f  K \u1000\u1030\u1015\u103d\u102d\u1019!';
 
   // 等级补充
   @override String get distanceToNext => 'နောက်ထပ်အဆင့်သို့အကွာအဝေး';
