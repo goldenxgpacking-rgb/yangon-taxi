@@ -1059,6 +1059,39 @@ class AppLocalizationsMy extends AppLocalizations {
   @override String get shareNow => 'အခုမျှဝေ';
   @override String get copied => 'ကူးယူပြီး';
 
+  // 推荐补充
+  @override String get perFriend => 'တစ်ဦးချင်းဖိတ်ခေါက်လျှင်';
+  @override String get couponReward => 'ခရီးဆုကြေး';
+  @override String get copyCode => 'ဖိတ်ခေါ်ကုဒ်ကူးယူ';
+  @override String get copyShare => 'မျှဝေစာသာကူးယူ';
+  @override String get activityRules => 'လှုပ်ရှားမှုစည်းမျဉ်း';
+  @override String get rule1 => 'သူငယ်ချင်းများကို Yangon Taxi အဖွဲ့ဝင်ဖိတ်ခေါက်ပါ';
+  @override String get rule2 => 'သူငယ်ချင်းများပထမဆုံးခရီးစဉ်ပြီးဆုံး';
+  @override String get rule3 => 'နှစ်ဘက်လုံးဆုရ';
+  @override String get rule4 => 'ကူပွန်သက်တမ်း ၃၀ ရက်အတွင်းအသုံးပြုနိုင်';
+  @override String get rule5 => 'ဖိတ်ခေါက်မှုကန့်သတ်ချက်မရှိ';
+  @override String get simulateBtn => '📱 စမ်းသပ်: သူငယ်ချင်းဖိတ်ခေါ်ကုဒ်ဖြင့်အဖွဲ့ဝင်';
+  @override String get simulateDesc => '(Demo: အောင်မြင်စွာဖိတ်ခေါက်စမ်းသပ်)';
+  @override String get shareTextCopied => 'မျှဝေစာကူးယူပြီး၊ WeChat/Facebook စသည်တွင်ပွားပါ';
+  @override String get invitedLabel => 'ဖိတ်ခေါက်ပြီး';
+  @override String get earnedLabel => 'ရရှိ';
+  @override String inviteSuccess(int count, int amount) => '🎉 $count ဦးကိုအောင်မြင်စွာဖိတ်ခေါက်ပြီး၊ $amount K ကူပွန်ရ!';
+  @override String codeCopiedMsg(String code) => 'ဖိတ်ခေါ်ကုဒ်ကူးယူပြီး: $code';
+  @override String shareMessage(String code, int amount) => '[Yangon Taxi ဖိတ်ခေါ်ဆုရ]
+ဖိတ်ခေါ်ကုဒ်: $code
+ဤကုဒ်ဖြင့်အဖွဲ့ဝင်ပါ၊ နှစ်ဘက်လုံး $amount K ကူပွန်ရ!';
+
+  // 等级补充
+  @override String get distanceToNext => 'နောက်ထပ်အဆင့်သို့အကွာအဝေး';
+  @override String get needMore => 'ပိုမိုလိုအပ်';
+  @override String get maxTier => 'အမြင့်ဆုံးအဆင့်ရောက်ပြီး!';
+  @override String get currentBadge => 'လက်ရှိ';
+  @override String get pointsRules => 'တိုက်စည်းမျဉ်း';
+  @override String get rulePerTrip => 'တစ်ခရီးစဉ်ပြီးဆုံးတိုင်း၊ အဆင့်တိုက်ရ';
+  @override String get ruleTier => 'အဆင့်မြင့်လေ၊ တစ်ခရီးစဉ်တိုက်ပိုများ';
+  @override String get ruleRedeem => 'တိုက်များကိုခရီးကူပွန်အဖြစ်လဲလှယ် (မကြာမီ)';
+  @override String get ruleInvite => 'သူငယ်ချင်းဖိတ်ခေါက်ပြီးဘို့တိုက်ဆု';
+
   @override String get kbzPayTitle => 'KBZ Pay ငွေပေးချေး';
   @override String get kbzPayDesc => 'QR ဖြတ်ပြီးငွေပေးပါ';
   @override String get scanQr => 'QR ကုဒ်ဖြတ်';
