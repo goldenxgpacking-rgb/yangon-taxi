@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../l10n/app_localizations.dart';
 
 class ReferralScreen extends StatefulWidget {
   const ReferralScreen({super.key});
@@ -43,6 +44,7 @@ class _ReferralScreenState extends State<ReferralScreen> {
     final code = List.generate(6, (i) => chars[rand.nextInt(chars.length)]).join();
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('referral_code', code);
+    if (!mounted) return;
     setState(() => _referralCode = code);
   }
 
@@ -55,9 +57,10 @@ class _ReferralScreenState extends State<ReferralScreen> {
     await prefs.setInt('invited_count', _invitedCount);
     await prefs.setInt('referral_points', _earnedPoints);
     if (!mounted) return;
+    final l = AppLocalizations.of(context);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('🎉 成功邀请1位好友，获得 $_kyatPerInvite K 打车券！', style: GoogleFonts.poppins()),
+        content: Text(l.inviteSuccess(_invitedCount, _kyatPerInvite), style: GoogleFonts.poppins()),
         backgroundColor: const Color(0xFF1A1A2E),
         behavior: SnackBarBehavior.floating,
       ),
@@ -67,9 +70,10 @@ class _ReferralScreenState extends State<ReferralScreen> {
   Future<void> _copyReferralCode() async {
     await Clipboard.setData(ClipboardData(text: _referralCode));
     if (!mounted) return;
+    final l = AppLocalizations.of(context);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('邀请码已复制：$_referralCode', style: GoogleFonts.poppins()),
+        content: Text(l.codeCopiedMsg(_referralCode), style: GoogleFonts.poppins()),
         backgroundColor: const Color(0xFF1A1A2E),
         behavior: SnackBarBehavior.floating,
       ),
@@ -77,12 +81,13 @@ class _ReferralScreenState extends State<ReferralScreen> {
   }
 
   Future<void> _shareViaSystem() async {
-    final message = '🚕 加入 Yangon Taxi！\n使用我的邀请码 $_referralCode 注册，你和我各得 $_kyatPerInvite K 打车券！';
+    final l = AppLocalizations.of(context);
+    final message = l.shareMessage(_referralCode, _kyatPerInvite);
     await Clipboard.setData(ClipboardData(text: message));
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('分享文案已复制，可粘贴到微信/Facebook等发送给好友', style: GoogleFonts.poppins(fontSize: 12)),
+        content: Text(l.shareTextCopied, style: GoogleFonts.poppins(fontSize: 12)),
         backgroundColor: const Color(0xFF1A1A2E),
         behavior: SnackBarBehavior.floating,
         duration: const Duration(seconds: 4),
@@ -92,10 +97,12 @@ class _ReferralScreenState extends State<ReferralScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+
     if (_isLoading) {
-      return const Scaffold(
-        backgroundColor: Color(0xFF1A1A2E),
-        body: Center(child: CircularProgressIndicator(color: Color(0xFFFFD700))),
+      return Scaffold(
+        backgroundColor: const Color(0xFF1A1A2E),
+        body: Center(child: CircularProgressIndicator(color: const Color(0xFFFFD700))),
       );
     }
 
@@ -108,7 +115,7 @@ class _ReferralScreenState extends State<ReferralScreen> {
           icon: const Icon(Icons.arrow_back, color: Color(0xFFFFD700)),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text('推荐有礼', style: GoogleFonts.poppins(color: const Color(0xFFFFD700), fontWeight: FontWeight.w600)),
+        title: Text(l.referralTitle, style: GoogleFonts.poppins(color: const Color(0xFFFFD700), fontWeight: FontWeight.w600)),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -128,10 +135,10 @@ class _ReferralScreenState extends State<ReferralScreen> {
               ),
               child: Column(
                 children: [
-                  Text('每邀请1位好友', style: GoogleFonts.poppins(color: Colors.black87, fontSize: 14)),
+                  Text(l.perFriend, style: GoogleFonts.poppins(color: Colors.black87, fontSize: 14)),
                   const SizedBox(height: 8),
                   Text('$_kyatPerInvite K', style: GoogleFonts.poppins(color: Colors.black, fontSize: 36, fontWeight: FontWeight.w800)),
-                  Text('打车券奖励', style: GoogleFonts.poppins(color: Colors.black87, fontSize: 13)),
+                  Text(l.couponReward, style: GoogleFonts.poppins(color: Colors.black87, fontSize: 13)),
                 ],
               ),
             ),
@@ -141,9 +148,9 @@ class _ReferralScreenState extends State<ReferralScreen> {
             // 数据统计
             Row(
               children: [
-                Expanded(child: _buildStatCard('已邀请', '$_invitedCount', Icons.people, Colors.blue)),
+                Expanded(child: _buildStatCard(l.invitedLabel, '$_invitedCount', Icons.people, Colors.blue)),
                 const SizedBox(width: 12),
-                Expanded(child: _buildStatCard('累计奖励', '$_earnedPoints', Icons.stars, const Color(0xFFFFD700))),
+                Expanded(child: _buildStatCard(l.earnedLabel, '$_earnedPoints', Icons.stars, const Color(0xFFFFD700))),
               ],
             ),
 
@@ -160,7 +167,7 @@ class _ReferralScreenState extends State<ReferralScreen> {
               ),
               child: Column(
                 children: [
-                  Text('我的邀请码', style: GoogleFonts.poppins(color: Colors.white54, fontSize: 12)),
+                  Text(l.myReferralCode, style: GoogleFonts.poppins(color: Colors.white54, fontSize: 12)),
                   const SizedBox(height: 8),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -178,7 +185,7 @@ class _ReferralScreenState extends State<ReferralScreen> {
                         child: ElevatedButton.icon(
                           onPressed: _copyReferralCode,
                           icon: const Icon(Icons.copy, size: 16),
-                          label: Text('复制邀请码', style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 13)),
+                          label: Text(l.copyCode, style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 13)),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFFFFD700),
                             foregroundColor: Colors.black,
@@ -192,7 +199,7 @@ class _ReferralScreenState extends State<ReferralScreen> {
                         child: ElevatedButton.icon(
                           onPressed: _shareViaSystem,
                           icon: const Icon(Icons.share, size: 16),
-                          label: Text('复制分享文案', style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 13)),
+                          label: Text(l.copyShare, style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 13)),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.white.withOpacity(0.1),
                             foregroundColor: const Color(0xFFFFD700),
@@ -213,14 +220,14 @@ class _ReferralScreenState extends State<ReferralScreen> {
             // 活动规则
             Align(
               alignment: Alignment.centerLeft,
-              child: Text('活动规则', style: GoogleFonts.poppins(color: const Color(0xFFFFD700), fontSize: 14, fontWeight: FontWeight.w600)),
+              child: Text(l.activityRules, style: GoogleFonts.poppins(color: const Color(0xFFFFD700), fontSize: 14, fontWeight: FontWeight.w600)),
             ),
             const SizedBox(height: 8),
-            _buildRuleItem('1', '邀请好友注册 Yangon Taxi'),
-            _buildRuleItem('2', '好友首次完成打车行程'),
-            _buildRuleItem('3', '你和好友各得 $_kyatPerInvite K 打车券'),
-            _buildRuleItem('4', '打车券有效期30天'),
-            _buildRuleItem('5', '无邀请人数上限，多邀多得'),
+            _buildRuleItem('1', l.rule1),
+            _buildRuleItem('2', l.rule2),
+            _buildRuleItem('3', l.rule3),
+            _buildRuleItem('4', l.rule4),
+            _buildRuleItem('5', l.rule5),
 
             const SizedBox(height: 24),
 
@@ -235,12 +242,12 @@ class _ReferralScreenState extends State<ReferralScreen> {
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 ),
-                child: Text('📱 模拟：好友通过邀请码注册', style: GoogleFonts.poppins(fontSize: 13)),
+                child: Text(l.simulateBtn, style: GoogleFonts.poppins(fontSize: 13)),
               ),
             ),
 
             const SizedBox(height: 16),
-            Text('（演示功能：模拟邀请成功，查看奖励变化）', style: GoogleFonts.poppins(color: Colors.white38, fontSize: 10)),
+            Text(l.simulateDesc, style: GoogleFonts.poppins(color: Colors.white38, fontSize: 10)),
           ],
         ),
       ),

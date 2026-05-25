@@ -215,6 +215,16 @@ abstract class AppLocalizations {
   String get platinum;
   String get tierBenefits;
   String get upgradeTo;
+  // 等级补充
+  String get distanceToNext;
+  String get needMore;
+  String get maxTier;
+  String get currentBadge;
+  String get pointsRules;
+  String get rulePerTrip;
+  String get ruleTier;
+  String get ruleRedeem;
+  String get ruleInvite;
 
   // ===== 推荐 =====
   String get referralTitle;
@@ -224,6 +234,25 @@ abstract class AppLocalizations {
   String get inviteFriends;
   String get shareNow;
   String get copied;
+  // 推荐补充
+  String get perFriend;
+  String get couponReward;
+  String get copyCode;
+  String get copyShare;
+  String get activityRules;
+  String get rule1;
+  String get rule2;
+  String get rule3;
+  String get rule4;
+  String get rule5;
+  String get simulateBtn;
+  String get simulateDesc;
+  String get shareTextCopied;
+  String get invitedLabel;
+  String get earnedLabel;
+  String inviteSuccess(int count, int amount);
+  String codeCopiedMsg(String code);
+  String shareMessage(String code, int amount);
 
   // ===== KBZ Pay =====
   String get kbzPayTitle;
@@ -483,6 +512,16 @@ class AppLocalizationsZh extends AppLocalizations {
   @override String get platinum => '铂金会员';
   @override String get tierBenefits => '会员权益';
   @override String get upgradeTo => '升级至';
+  // 等级补充
+  @override String get distanceToNext => '距下一等级';
+  @override String get needMore => '还需';
+  @override String get maxTier => '已达到最高等级！';
+  @override String get currentBadge => '当前';
+  @override String get pointsRules => '积分规则';
+  @override String get rulePerTrip => '每完成1单，获得对应等级积分';
+  @override String get ruleTier => '等级越高，每单积分越多';
+  @override String get ruleRedeem => '积分可兑换打车券（即将上线）';
+  @override String get ruleInvite => '邀请好友额外获得积分奖励';
 
   @override String get referralTitle => '推荐有礼';
   @override String get referralDesc => '邀请好友注册，双方各得 5000 KS';
@@ -491,6 +530,25 @@ class AppLocalizationsZh extends AppLocalizations {
   @override String get inviteFriends => '邀请好友';
   @override String get shareNow => '立即分享';
   @override String get copied => '已复制';
+  // 推荐补充
+  @override String get perFriend => '每邀请1位好友';
+  @override String get couponReward => '打车券奖励';
+  @override String get copyCode => '复制邀请码';
+  @override String get copyShare => '复制分享文案';
+  @override String get activityRules => '活动规则';
+  @override String get rule1 => '邀请好友注册 Yangon Taxi';
+  @override String get rule2 => '好友首次完成打车行程';
+  @override String get rule3 => '你和好友各得奖励';
+  @override String get rule4 => '打车券有效期30天';
+  @override String get rule5 => '无邀请人数上限，多邀多得';
+  @override String get simulateBtn => '📱 模拟：好友通过邀请码注册';
+  @override String get simulateDesc => '（演示功能：模拟邀请成功，查看奖励变化）';
+  @override String get shareTextCopied => '分享文案已复制，可粘贴到微信/Facebook等发送给好友';
+  @override String get invitedLabel => '已邀请';
+  @override String get earnedLabel => '累计奖励';
+  @override String inviteSuccess(int count, int amount) => '🎉 成功邀请$count位好友，获得 $amount K 打车券！';
+  @override String codeCopiedMsg(String code) => '邀请码已复制：$code';
+  @override String shareMessage(String code, int amount) => '【Yangon Taxi 推荐有礼】\n邀请码：$code\n注册时填入邀请码，双方各得 $amount K 打车券！';
 
   @override String get kbzPayTitle => 'KBZ Pay 支付';
   @override String get kbzPayDesc => '扫码或输入金额完成支付';
@@ -723,6 +781,16 @@ class AppLocalizationsEn extends AppLocalizations {
   @override String get platinum => 'Platinum';
   @override String get tierBenefits => 'Benefits';
   @override String get upgradeTo => 'Upgrade to';
+  // 等级补充
+  @override String get distanceToNext => 'Distance to Next';
+  @override String get needMore => 'Need more';
+  @override String get maxTier => 'Max tier reached!';
+  @override String get currentBadge => 'Current';
+  @override String get pointsRules => 'Points Rules';
+  @override String get rulePerTrip => 'Per trip completed, earn tier points';
+  @override String get ruleTier => 'Higher tier, more points per trip';
+  @override String get ruleRedeem => 'Redeem points for ride coupons (coming soon)';
+  @override String get ruleInvite => 'Invite friends for bonus points';
 
   @override String get referralTitle => 'Refer & Earn';
   @override String get referralDesc => 'Invite friends and both get 5000 KS';
@@ -731,6 +799,25 @@ class AppLocalizationsEn extends AppLocalizations {
   @override String get inviteFriends => 'Invite Friends';
   @override String get shareNow => 'Share Now';
   @override String get copied => 'Copied!';
+  // 推荐补充
+  @override String get perFriend => 'Per friend invited';
+  @override String get couponReward => 'Ride coupon reward';
+  @override String get copyCode => 'Copy invite code';
+  @override String get copyShare => 'Copy share text';
+  @override String get activityRules => 'Activity Rules';
+  @override String get rule1 => 'Invite friends to register Yangon Taxi';
+  @override String get rule2 => 'Friends complete first ride';
+  @override String get rule3 => 'Both get reward';
+  @override String get rule4 => 'Coupon valid for 30 days';
+  @override String get rule5 => 'No limit on invites';
+  @override String get simulateBtn => '📱 Simulate: Friend registers via invite code';
+  @override String get simulateDesc => '(Demo: Simulate successful invite)';
+  @override String get shareTextCopied => 'Share text copied, paste to WeChat/Facebook etc.';
+  @override String get invitedLabel => 'Invited';
+  @override String get earnedLabel => 'Earned';
+  @override String inviteSuccess(int count, int amount) => '🎉 Successfully invited $count friends, earned $amount K coupon!';
+  @override String codeCopiedMsg(String code) => 'Invite code copied: $code';
+  @override String shareMessage(String code, int amount) => '[Yangon Taxi Refer & Earn]\nInvite code: $code\nRegister with this code, both get $amount K coupon!';
 
   @override String get kbzPayTitle => 'KBZ Pay';
   @override String get kbzPayDesc => 'Scan QR or enter amount to pay';
