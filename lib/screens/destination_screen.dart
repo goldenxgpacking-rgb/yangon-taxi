@@ -1,8 +1,8 @@
+﻿import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:geocoding/geocoding.dart';
 import 'vehicle_selection_screen.dart';
 
 class DestinationScreen extends StatefulWidget {
@@ -16,7 +16,7 @@ class DestinationScreen extends StatefulWidget {
 }
 
 class _DestinationScreenState extends State<DestinationScreen> {
-  String _pickupAddress = '正在获取上车地点...';
+  String _pickupAddress = 'æ­£åœ¨èŽ·å–ä¸Šè½¦åœ°ç‚¹...';
   LatLng _pickupLocation = const LatLng(16.8661, 96.1951);
 
   final _destinationController = TextEditingController();
@@ -26,28 +26,29 @@ class _DestinationScreenState extends State<DestinationScreen> {
   LatLng? _destinationLocation;
   bool _isLoading = true;
   bool _showResults = false;
+  Timer? _debounce;
 
   static const List<_PlaceItem> _yangonPlaces = [
-    _PlaceItem('仰光国际机场 (Yangon International Airport)', '机场', 16.9077, 96.1330),
-    _PlaceItem('瑞光大金塔 (Shwedagon Pagoda)', '大金塔', 16.7984, 96.1299),
-    _PlaceItem('昂山市场 (Bogyoke Aung San Market)', '昂山市场', 16.7738, 96.0962),
-    _PlaceItem('苏雷宝塔 (Sule Pagoda)', '苏雷塔', 16.7715, 96.0991),
-    _PlaceItem('仰光唐人街 (Chinatown Yangon)', '唐人街', 16.7811, 96.0988),
-    _PlaceItem('茵雅湖 (Inya Lake)', '茵雅湖', 16.8372, 96.1375),
-    _PlaceItem('甘马育市场 (Hlaing Thayar Market)', '甘马育', 16.8533, 96.1111),
-    _PlaceItem('丁茵大桥 (Thanlyin Bridge)', '丁茵', 16.7544, 96.2444),
-    _PlaceItem('班杜拉公园 (Maha Bandula Park)', '班杜拉公园', 16.7736, 96.0969),
-    _PlaceItem('卡拉威宫 (Karaweik Palace)', '卡拉威宫', 16.8261, 96.1389),
-    _PlaceItem('仰光火车站 (Yangon Central Railway Station)', '火车站', 16.7760, 96.0890),
-    _PlaceItem('仰光港口 (Yangon Port)', '港口', 16.7694, 96.0933),
-    _PlaceItem('仰光大学 (University of Yangon)', '仰光大学', 16.8506, 96.1433),
-    _PlaceItem('维巴吉医院 (Yangon General Hospital)', '总医院', 16.7744, 96.1000),
-    _PlaceItem('Junction Square', 'Junction广场', 16.8036, 96.1369),
+    _PlaceItem('ä»°å…‰å›½é™…æœºåœº (Yangon International Airport)', 'æœºåœº', 16.9077, 96.1330),
+    _PlaceItem('ç‘žå…‰å¤§é‡‘å¡” (Shwedagon Pagoda)', 'å¤§é‡‘å¡”', 16.7984, 96.1299),
+    _PlaceItem('æ˜‚å±±å¸‚åœº (Bogyoke Aung San Market)', 'æ˜‚å±±å¸‚åœº', 16.7738, 96.0962),
+    _PlaceItem('è‹é›·å®å¡” (Sule Pagoda)', 'è‹é›·å¡”', 16.7715, 96.0991),
+    _PlaceItem('ä»°å…‰å”äººè¡— (Chinatown Yangon)', 'å”äººè¡—', 16.7811, 96.0988),
+    _PlaceItem('èŒµé›…æ¹– (Inya Lake)', 'èŒµé›…æ¹–', 16.8372, 96.1375),
+    _PlaceItem('ç”˜é©¬è‚²å¸‚åœº (Hlaing Thayar Market)', 'ç”˜é©¬è‚²', 16.8533, 96.1111),
+    _PlaceItem('ä¸èŒµå¤§æ¡¥ (Thanlyin Bridge)', 'ä¸èŒµ', 16.7544, 96.2444),
+    _PlaceItem('ç­æœæ‹‰å…¬å›­ (Maha Bandula Park)', 'ç­æœæ‹‰å…¬å›­', 16.7736, 96.0969),
+    _PlaceItem('å¡æ‹‰å¨å®« (Karaweik Palace)', 'å¡æ‹‰å¨å®«', 16.8261, 96.1389),
+    _PlaceItem('ä»°å…‰ç«è½¦ç«™ (Yangon Central Railway Station)', 'ç«è½¦ç«™', 16.7760, 96.0890),
+    _PlaceItem('ä»°å…‰æ¸¯å£ (Yangon Port)', 'æ¸¯å£', 16.7694, 96.0933),
+    _PlaceItem('ä»°å…‰å¤§å­¦ (University of Yangon)', 'ä»°å…‰å¤§å­¦', 16.8506, 96.1433),
+    _PlaceItem('ç»´å·´å‰åŒ»é™¢ (Yangon General Hospital)', 'æ€»åŒ»é™¢', 16.7744, 96.1000),
+    _PlaceItem('Junction Square', 'Junctionå¹¿åœº', 16.8036, 96.1369),
     _PlaceItem('Tarmwe Market', 'Tarmwe', 16.7933, 96.1183),
-    _PlaceItem('North Dagon', '北达贡', 16.9083, 96.1700),
-    _PlaceItem('South Dagon', '南达贡', 16.8200, 96.1750),
-    _PlaceItem('Thaketa', '达基达', 16.7950, 96.1900),
-    _PlaceItem('Pabedan', '帕贝丹', 16.7720, 96.1010),
+    _PlaceItem('North Dagon', 'åŒ—è¾¾è´¡', 16.9083, 96.1700),
+    _PlaceItem('South Dagon', 'å—è¾¾è´¡', 16.8200, 96.1750),
+    _PlaceItem('Thaketa', 'è¾¾åŸºè¾¾', 16.7950, 96.1900),
+    _PlaceItem('Pabedan', 'å¸•è´ä¸¹', 16.7720, 96.1010),
   ];
 
   @override
@@ -55,7 +56,7 @@ class _DestinationScreenState extends State<DestinationScreen> {
     super.initState();
     if (widget.currentLocation != null) {
       _pickupLocation = widget.currentLocation!;
-      _pickupAddress = widget.currentAddress ?? '当前位置';
+      _pickupAddress = widget.currentAddress ?? 'å½“å‰ä½ç½®';
       _isLoading = false;
     } else {
       _getCurrentLocation();
@@ -64,6 +65,7 @@ class _DestinationScreenState extends State<DestinationScreen> {
 
   @override
   void dispose() {
+    _debounce?.cancel();
     _destinationController.dispose();
     super.dispose();
   }
@@ -91,13 +93,14 @@ class _DestinationScreenState extends State<DestinationScreen> {
       } catch (_) {}
     } catch (e) {
       setState(() {
-        _pickupAddress = '仰光市中心, 缅甸';
+        _pickupAddress = 'ä»°å…‰å¸‚ä¸­å¿ƒ, ç¼…ç”¸';
         _isLoading = false;
       });
     }
   }
 
   void _onSearchChanged(String query) {
+    _debounce?.cancel();
     final q = query.trim().toLowerCase();
     if (q.isEmpty) {
       setState(() {
@@ -106,16 +109,21 @@ class _DestinationScreenState extends State<DestinationScreen> {
       });
       return;
     }
-    final results = <_PlaceItem>[];
-    for (final place in _yangonPlaces) {
-      if (place.name.toLowerCase().contains(q) ||
-          place.keyword.toLowerCase().contains(q)) {
-        results.add(place);
+    // Debounce 300ms to avoid rebuilding on every keystroke
+    _debounce = Timer(const Duration(milliseconds: 300), () {
+      final results = <_PlaceItem>[];
+      for (final place in _yangonPlaces) {
+        if (place.name.toLowerCase().contains(q) ||
+            place.keyword.toLowerCase().contains(q)) {
+          results.add(place);
+        }
       }
-    }
-    setState(() {
-      _searchResults = results;
-      _showResults = results.isNotEmpty;
+      if (mounted) {
+        setState(() {
+          _searchResults = results;
+          _showResults = results.isNotEmpty;
+        });
+      }
     });
   }
 
@@ -129,39 +137,17 @@ class _DestinationScreenState extends State<DestinationScreen> {
     });
   }
 
-  Future<void> _onMapTap(LatLng location) async {
-    setState(() => _isSearching = true);
-    try {
-      final placemarks = await placemarkFromCoordinates(
-        location.latitude, location.longitude,
-      );
-      String address =
-          '${location.latitude.toStringAsFixed(4)}, ${location.longitude.toStringAsFixed(4)}';
-      if (placemarks.isNotEmpty) {
-        final place = placemarks.first;
-        final parts = [
-          place.street, place.locality, place.subLocality, place.name, place.country
-        ].where((e) => e != null && e!.isNotEmpty).toList();
-        if (parts.isNotEmpty) address = parts.join(', ');
-      }
-      setState(() {
-        _destinationLocation = location;
-        _destinationAddress = address;
-        _destinationController.text = address;
-        _showResults = false;
-        _searchResults = [];
-      });
-    } catch (_) {
-      setState(() {
-        _destinationLocation = location;
-        _destinationAddress =
-            '${location.latitude.toStringAsFixed(4)}, ${location.longitude.toStringAsFixed(4)}';
-        _destinationController.text = _destinationAddress;
-        _showResults = false;
-        _searchResults = [];
-      });
-    }
-    setState(() => _isSearching = false);
+  void _onMapTap(LatLng location) {
+    // No slow geocoding API - just show coordinates directly
+    final address =
+        '${location.latitude.toStringAsFixed(4)}, ${location.longitude.toStringAsFixed(4)}';
+    setState(() {
+      _destinationLocation = location;
+      _destinationAddress = address;
+      _destinationController.text = address;
+      _showResults = false;
+      _searchResults = [];
+    });
   }
 
   @override
@@ -176,7 +162,7 @@ class _DestinationScreenState extends State<DestinationScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          '输入目的地',
+          'è¾“å…¥ç›®çš„åœ°',
           style: GoogleFonts.poppins(
             color: const Color(0xFFFFD700),
             fontWeight: FontWeight.w600,
@@ -211,7 +197,7 @@ class _DestinationScreenState extends State<DestinationScreen> {
                                 icon: BitmapDescriptor
                                     .defaultMarkerWithHue(
                                         BitmapDescriptor.hueYellow),
-                                infoWindow: const InfoWindow(title: '上车地点'),
+                                infoWindow: const InfoWindow(title: 'ä¸Šè½¦åœ°ç‚¹'),
                               ),
                               if (_destinationLocation != null)
                                 Marker(
@@ -220,7 +206,7 @@ class _DestinationScreenState extends State<DestinationScreen> {
                                   icon: BitmapDescriptor
                                       .defaultMarkerWithHue(
                                           BitmapDescriptor.hueRed),
-                                  infoWindow: const InfoWindow(title: '目的地'),
+                                  infoWindow: const InfoWindow(title: 'ç›®çš„åœ°'),
                                 ),
                             },
                             onTap: _onMapTap,
@@ -256,13 +242,13 @@ class _DestinationScreenState extends State<DestinationScreen> {
                                   width: 2,
                                   height: 28,
                                   color: const Color(0xFFFFD700)
-                                      .withOpacity(0.3),
+                                      .withValues(alpha: 0.),
                                   margin: const EdgeInsets.only(left: 18),
                                 ),
                               ],
                             ),
                             const SizedBox(height: 12),
-                            Text('目的地',
+                            Text('ç›®çš„åœ°',
                                 style: GoogleFonts.poppins(
                                     color: Colors.white54, fontSize: 12)),
                             const SizedBox(height: 8),
@@ -272,7 +258,7 @@ class _DestinationScreenState extends State<DestinationScreen> {
                               onChanged: _onSearchChanged,
                               decoration: InputDecoration(
                                 hintText:
-                                    '搜索目的地（如：机场、大金塔、唐人街）',
+                                    'æœç´¢ç›®çš„åœ°ï¼ˆå¦‚ï¼šæœºåœºã€å¤§é‡‘å¡”ã€å”äººè¡—ï¼‰',
                                 hintStyle: const TextStyle(
                                     color: Colors.white54, fontSize: 13),
                                 prefixIcon: const Icon(Icons.search,
@@ -294,7 +280,7 @@ class _DestinationScreenState extends State<DestinationScreen> {
                                           )
                                         : null,
                                 filled: true,
-                                fillColor: Colors.white.withOpacity(0.1),
+                                fillColor: Colors.white.withValues(alpha: 0.),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
                                   borderSide: BorderSide.none,
@@ -303,7 +289,7 @@ class _DestinationScreenState extends State<DestinationScreen> {
                                   borderRadius: BorderRadius.circular(12),
                                   borderSide: BorderSide(
                                     color: const Color(0xFFFFD700)
-                                        .withOpacity(0.3),
+                                        .withValues(alpha: 0.),
                                   ),
                                 ),
                                 focusedBorder: OutlineInputBorder(
@@ -346,7 +332,7 @@ class _DestinationScreenState extends State<DestinationScreen> {
                                 elevation: 0,
                               ),
                               child: Text(
-                                '下一步 → 选择车型',
+                                'ä¸‹ä¸€æ­¥ â†’ é€‰æ‹©è½¦åž‹',
                                 style: GoogleFonts.poppins(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
@@ -373,7 +359,7 @@ class _DestinationScreenState extends State<DestinationScreen> {
           color: const Color(0xFF16213E),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: const Color(0xFFFFD700).withOpacity(0.2),
+            color: const Color(0xFFFFD700).withValues(alpha: 0.),
           ),
         ),
         child: ListView.builder(
@@ -424,10 +410,10 @@ class _DestinationScreenState extends State<DestinationScreen> {
         margin: const EdgeInsets.only(top: 8),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: const Color(0xFFFFD700).withOpacity(0.1),
+          color: const Color(0xFFFFD700).withValues(alpha: 0.),
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: const Color(0xFFFFD700).withOpacity(0.3),
+            color: const Color(0xFFFFD700).withValues(alpha: 0.),
           ),
         ),
         child: Row(
@@ -467,17 +453,17 @@ class _DestinationScreenState extends State<DestinationScreen> {
             const Icon(Icons.touch_app, color: Colors.white24, size: 36),
             const SizedBox(height: 8),
             Text(
-              '输入关键词搜索 或 点击地图选点',
+              'è¾“å…¥å…³é”®è¯æœç´¢ æˆ– ç‚¹å‡»åœ°å›¾é€‰ç‚¹',
               style: GoogleFonts.poppins(color: Colors.white38, fontSize: 13),
             ),
             const SizedBox(height: 12),
             Wrap(
               spacing: 8,
               runSpacing: 6,
-              children: ['🛫 机场', '⛩️ 大金塔', '🏪 昂山市场', '🏮 唐人街', '🌊 茵雅湖']
+              children: ['ðŸ›« æœºåœº', 'â›©ï¸ å¤§é‡‘å¡”', 'ðŸª æ˜‚å±±å¸‚åœº', 'ðŸ® å”äººè¡—', 'ðŸŒŠ èŒµé›…æ¹–']
                   .map((tag) => ActionChip(
                         label: Text(tag, style: const TextStyle(fontSize: 12)),
-                        backgroundColor: Colors.white.withOpacity(0.08),
+                        backgroundColor: Colors.white.withValues(alpha: 0.),
                         side: BorderSide.none,
                         onPressed: () {
                           final keyword = tag.replaceAll(
@@ -500,10 +486,10 @@ class _DestinationScreenState extends State<DestinationScreen> {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.08),
+        color: Colors.white.withValues(alpha: 0.),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: const Color(0xFFFFD700).withOpacity(0.25),
+          color: const Color(0xFFFFD700).withValues(alpha: 0.),
         ),
       ),
       child: Row(
@@ -515,7 +501,7 @@ class _DestinationScreenState extends State<DestinationScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '上车地点',
+                  'ä¸Šè½¦åœ°ç‚¹',
                   style: GoogleFonts.poppins(color: Colors.white54, fontSize: 11),
                 ),
                 const SizedBox(height: 3),
